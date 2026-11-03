@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v5">
+  <meta name="edoglo-build" content="2026-11-03-v6">
   <title>Edoglò CRM</title>
   <style>
     :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#111827;background:#f8fafc}
@@ -41,6 +41,14 @@
     .lead-tools input,.lead-tools select{border:1px solid #cbd5e1;border-radius:12px;padding:11px;background:#fff;width:100%}
     .callback-due{border-left:4px solid #f59e0b}
     .callback-badge{display:inline-block;background:#fef3c7;color:#92400e;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:900;margin-top:7px}
+    .appt-status{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900;margin:0 0 8px}
+    .appt-status.confirmed,.appt-status.scheduled{background:#dbeafe;color:#1d4ed8}
+    .appt-status.completed{background:#dcfce7;color:#166534}
+    .appt-status.cancelled{background:#fee2e2;color:#991b1b}
+    .appt-status.reschedule{background:#fef3c7;color:#92400e}
+    .agenda-filters{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
+    .agenda-filter{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:8px 11px;font-weight:800;cursor:pointer}
+    .agenda-filter.active{background:#111827;color:#fff;border-color:#111827}
     @media(max-width:520px){.lead-tools{grid-template-columns:1fr}}
     @media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
   </style>
@@ -73,6 +81,8 @@ const fmtDate=x=>new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"2-digit",m
 const fmtTime=x=>new Intl.DateTimeFormat("it-IT",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x));
 const day=x=>new Intl.DateTimeFormat("sv-SE",{year:"numeric",month:"2-digit",day:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x));
 const now=()=>new Date().toISOString();
+
+const apptLabel={scheduled:"Programmato",confirmed:"Confermato",completed:"Eseguito",cancelled:"Annullato",reschedule:"Da riprogrammare"};
 
 const label={
   new:"Nuovo",
@@ -331,6 +341,7 @@ function apptCards(xs){
   return xs.map(a=>`
     <div class="card appt ${day(a.starts_at)===day(now())?"today":""}">
       <div class="name">${esc(a.client_name||"Cliente")}</div>
+      <div class="appt-status ${esc(a.status)}">${esc(apptLabel[a.status]||a.status)}</div>
       <div class="appt-date">
         <div class="appt-date-main">${fmtDate(a.starts_at)}${day(a.starts_at)===day(now())?'<span class="today-tag">OGGI</span>':""}</div>
         <div class="appt-time">${fmtTime(a.starts_at)} – ${fmtTime(a.ends_at)}</div>
@@ -351,8 +362,41 @@ function apptCards(xs){
 }
 
 function agenda(){
-  const xs=appts.filter(a=>new Date(a.ends_at)>=new Date(Date.now()-86400000)&&a.status!=="cancelled");
-  shell(`<div class="section">Agenda sopralluoghi</div>${apptCards(xs)}`);
+  if(profile.role==="technician"){
+    const xs=appts.filter(a=>new Date(a.ends_at)>=new Date(Date.now()-86400000)&&!["cancelled","completed"].includes(a.status));
+    shell(`<div class="section">Agenda sopralluoghi</div>${apptCards(xs)}`);
+  }else{
+    shell(`
+      <div class="section">Agenda sopralluoghi</div>
+      <div class="agenda-filters">
+        <button class="agenda-filter active" data-af="upcoming">Prossimi</button>
+        <button class="agenda-filter" data-af="completed">Eseguiti</button>
+        <button class="agenda-filter" data-af="cancelled">Annullati</button>
+        <button class="agenda-filter" data-af="all">Tutti</button>
+      </div>
+      <div id="agendaList"></div>
+    `);
+    const list=document.querySelector("#agendaList");
+    const paint=(mode)=>{
+      let xs=[...appts];
+      if(mode==="upcoming") xs=xs.filter(a=>new Date(a.ends_at)>=new Date()&&!["cancelled","completed"].includes(a.status));
+      if(mode==="completed") xs=xs.filter(a=>a.status==="completed").sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
+      if(mode==="cancelled") xs=xs.filter(a=>a.status==="cancelled").sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
+      if(mode==="all") xs=xs.sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
+      list.innerHTML=apptCards(xs);
+      bindAgendaActions();
+    };
+    document.querySelectorAll("[data-af]").forEach(b=>b.onclick=()=>{
+      document.querySelectorAll("[data-af]").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      paint(b.dataset.af);
+    });
+    paint("upcoming");
+  }
+  bindAgendaActions();
+}
+
+function bindAgendaActions(){
   document.querySelectorAll("[data-done]").forEach(b=>b.onclick=()=>setAppt(b.dataset.done,"completed"));
   document.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>setAppt(b.dataset.cancel,"cancelled"));
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editAppt(b.dataset.edit));
