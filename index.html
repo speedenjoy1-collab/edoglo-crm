@@ -165,7 +165,7 @@ function shell(body){
 
 function render(){
   if(profile.role==="technician" && view==="home") view="agenda";
-  ({home,leadsView,agenda,availability,staff}[view]||home)();
+  ({home,leads:leadsView,agenda,availability,staff}[view]||home)();
 }
 
 function home(){
