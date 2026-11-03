@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v4">
+  <meta name="edoglo-build" content="2026-11-03-v5">
   <title>Edoglò CRM</title>
   <style>
     :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#111827;background:#f8fafc}
@@ -37,6 +37,11 @@
     .today-tag{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#166534;color:#fff;font-size:11px;font-weight:900;vertical-align:middle}
     @media(max-width:480px){.appt-date{align-items:flex-start;flex-direction:column}.appt-time{font-size:17px}}
     .slot{display:inline-block;padding:6px 8px;border-radius:9px;margin:3px;background:#dcfce7;font-size:12px}.slot.busy{background:#f1f5f9;color:#94a3b8;text-decoration:line-through}
+    .lead-tools{display:grid;grid-template-columns:1fr 180px;gap:8px;margin:10px 0}
+    .lead-tools input,.lead-tools select{border:1px solid #cbd5e1;border-radius:12px;padding:11px;background:#fff;width:100%}
+    .callback-due{border-left:4px solid #f59e0b}
+    .callback-badge{display:inline-block;background:#fef3c7;color:#92400e;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:900;margin-top:7px}
+    @media(max-width:520px){.lead-tools{grid-template-columns:1fr}}
     @media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
   </style>
 </head>
@@ -56,6 +61,13 @@ let user=null, profile=null, leads=[], appts=[], techs=[], unavail=[], view="hom
 
 const esc=v=>String(v??"").replace(/[&<>'"]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[s]));
 const digits=v=>String(v||"").replace(/[^0-9]/g,"");
+const waNumber=v=>{
+  let d=digits(v);
+  if(d.startsWith("00")) d=d.slice(2);
+  if(d.startsWith("39")) return d;
+  if(d.startsWith("3") && d.length>=9) return "39"+d;
+  return d;
+};
 const fmt=x=>new Intl.DateTimeFormat("it-IT",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x));
 const fmtDate=x=>new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric",timeZone:"Europe/Rome"}).format(new Date(x));
 const fmtTime=x=>new Intl.DateTimeFormat("it-IT",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x));
@@ -182,40 +194,71 @@ function render(){
 
 function home(){
   const today=appts.filter(a=>day(a.starts_at)===day(now())&&a.status!=="cancelled").length;
-  const callbacks=leads.filter(l=>l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date())).length;
+  const dueCallbacks=leads.filter(l=>l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date()));
   shell(`
     <div class="grid stats">
       <div class="card stat"><b>${leads.filter(l=>l.status==="new").length}</b><span>Nuovi lead</span></div>
-      <div class="card stat"><b>${callbacks}</b><span>Da richiamare</span></div>
+      <div class="card stat"><b>${dueCallbacks.length}</b><span>Da richiamare</span></div>
       <div class="card stat"><b>${today}</b><span>Sopralluoghi oggi</span></div>
       <div class="card stat"><b>${leads.filter(l=>["valid","appointment","won"].includes(l.status)).length}</b><span>Qualificati</span></div>
     </div>
     <div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
+    ${dueCallbacks.length?`<div class="section">Richiami da fare</div>${leadCards(dueCallbacks.slice(0,5))}`:""}
     <div class="section">Prossimi sopralluoghi</div>
     ${apptCards(appts.filter(a=>new Date(a.ends_at)>=new Date()&&a.status!=="cancelled").slice(0,6))}
     <div class="section">Disponibilità prossimi 7 giorni</div>
     ${availabilityHtml()}
   `);
   document.querySelector("#newLead").onclick=()=>leadForm();
+  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
 }
 
-function leadCards(){
-  return leads.map(l=>`
-    <div class="card">
+function leadCards(xs=leads){
+  return xs.map(l=>{
+    const due=l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date());
+    return `
+    <div class="card ${due?"callback-due":""}">
       <div class="name">${esc(l.full_name)}</div>
       <div class="meta">${esc(l.city||"")} ${esc(l.province||"")} · ${esc(l.source||"")} · ${esc(label[l.status]||l.status)}</div>
-      <div>${esc(l.request||"")}</div>
+      ${due?`<div class="callback-badge">☎ RICHIAMARE ORA${l.callback_at?" · "+fmt(l.callback_at):""}</div>`:""}
+      <div style="margin-top:6px">${esc(l.request||"")}</div>
       <div class="row" style="margin-top:10px">
         <a class="btn blue" href="tel:${esc(l.phone||"")}">Chiama</a>
-        <a class="btn ok" target="_blank" href="https://wa.me/${digits(l.phone)}">WhatsApp</a>
+        <a class="btn ok" target="_blank" href="https://wa.me/${waNumber(l.phone)}">WhatsApp</a>
         <button class="btn ghost" data-open="${l.id}">Apri</button>
       </div>
-    </div>`).join("") || '<div class="card">Nessun lead</div>';
+    </div>`}).join("") || '<div class="card">Nessun lead</div>';
 }
 
 function leadsView(){
-  shell(`<div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div><div class="section">Lead</div>${leadCards()}`);
+  shell(`
+    <div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
+    <div class="section">Lead</div>
+    <div class="lead-tools">
+      <input id="leadSearch" placeholder="Cerca nome, telefono, comune...">
+      <select id="leadFilter">
+        <option value="">Tutti gli stati</option>
+        ${Object.entries(label).map(([v,n])=>`<option value="${v}">${esc(n)}</option>`).join("")}
+      </select>
+    </div>
+    <div id="leadList">${leadCards()}</div>
+  `);
   document.querySelector("#newLead").onclick=()=>leadForm();
+  const search=document.querySelector("#leadSearch");
+  const filter=document.querySelector("#leadFilter");
+  const list=document.querySelector("#leadList");
+  const refresh=()=>{
+    const q=search.value.trim().toLowerCase();
+    const st=filter.value;
+    const xs=leads.filter(l=>{
+      const hay=[l.full_name,l.phone,l.email,l.city,l.province,l.request,l.source].filter(Boolean).join(" ").toLowerCase();
+      return (!q||hay.includes(q)) && (!st||l.status===st);
+    });
+    list.innerHTML=leadCards(xs);
+    list.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
+  };
+  search.oninput=refresh;
+  filter.onchange=refresh;
   document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
 }
 
@@ -237,7 +280,7 @@ function leadForm(){
 
   document.querySelector("#f").onsubmit=async e=>{
     e.preventDefault();
-    const x=Object.fromEntries(new FormData(f).entries());
+    const x=Object.fromEntries(new FormData(e.currentTarget).entries());
     x.windows_count=x.windows_count?Number(x.windows_count):null;
     x.created_by=user.id;
     const {error}=await sb.from("leads").insert(x);
@@ -258,7 +301,7 @@ function leadDetail(id){
     </div>
     <div class="row">
       <a class="btn blue" href="tel:${esc(l.phone||"")}">Chiama</a>
-      <a class="btn ok" target="_blank" href="https://wa.me/${digits(l.phone)}">WhatsApp</a>
+      <a class="btn ok" target="_blank" href="https://wa.me/${waNumber(l.phone)}">WhatsApp</a>
       <button class="btn primary" id="schedule">Fissa sopralluogo</button>
     </div>
     <div class="section">Esito chiamata</div>
@@ -348,7 +391,7 @@ function apptForm(l){
 
   document.querySelector("#af").onsubmit=async e=>{
     e.preventDefault();
-    const x=Object.fromEntries(new FormData(af).entries());
+    const x=Object.fromEntries(new FormData(e.currentTarget).entries());
     const t=techs.find(t=>t.id===x.technician_id);
     x.technician_name=t?.full_name||"Antonio";
     x.starts_at=new Date(x.starts_at).toISOString();
@@ -391,7 +434,7 @@ function editAppt(id){
     </form>`);
   document.querySelector("#ef").onsubmit=async e=>{
     e.preventDefault();
-    const x=Object.fromEntries(new FormData(ef).entries());
+    const x=Object.fromEntries(new FormData(e.currentTarget).entries());
     const t=techs.find(t=>t.id===x.technician_id);
     x.technician_name=t?.full_name||"Antonio";
     x.starts_at=new Date(x.starts_at).toISOString();
@@ -417,7 +460,7 @@ function unavailabilityForm(){
     </form>`);
   document.querySelector("#uf").onsubmit=async e=>{
     e.preventDefault();
-    const x=Object.fromEntries(new FormData(uf).entries());
+    const x=Object.fromEntries(new FormData(e.currentTarget).entries());
     x.starts_at=new Date(x.starts_at).toISOString();
     x.ends_at=new Date(x.ends_at).toISOString();
     x.created_by=user.id;
