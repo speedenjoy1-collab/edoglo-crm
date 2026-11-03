@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v8">
+  <meta name="edoglo-build" content="2026-11-03-v9">
   <title>Edoglò CRM</title>
   <style>
     :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#111827;background:#f8fafc}
@@ -422,14 +422,16 @@ async function measurementsView(appointmentId){
   if(error) return alert(error.message);
 
   shell(`
-    <div class="section">Misure sopralluogo</div>
+    <div class="section">Rilievo misure</div>
     <div class="card">
       <div class="name">${esc(a.client_name||"Cliente")}</div>
       <div class="meta">${fmtDate(a.starts_at)} · ${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div>
     </div>
 
     <form id="mf" class="card">
-      <div class="section" style="margin-top:0">Aggiungi posizione</div>
+      <div class="section" style="margin-top:0">Nuova posizione</div>
+
+      <div class="section">Misure e apertura</div>
       <div class="measure-grid">
         <div class="field"><label>Ambiente</label><input name="room" placeholder="Es. Soggiorno"></div>
         <div class="field"><label>Posizione</label><input name="position_name" placeholder="Es. PF1"></div>
@@ -448,8 +450,51 @@ async function measurementsView(appointmentId){
         <div class="field"><label>Larghezza mm</label><input name="width_mm" type="number" min="1" inputmode="numeric"></div>
         <div class="field"><label>Altezza mm</label><input name="height_mm" type="number" min="1" inputmode="numeric"></div>
       </div>
-      <div class="field"><label>Note</label><textarea name="notes" placeholder="Cassonetto, soglia, colore, apertura, particolarità..."></textarea></div>
-      <button class="btn primary">+ Salva misura</button>
+
+      <div class="section">Serramento</div>
+      <div class="measure-grid">
+        <div class="field"><label>Profilo / serie</label><select name="profile">
+          <option value="">Da definire</option>
+          <option>PVC 72</option><option>PVC 76</option><option>PVC 80</option><option>PVC 82</option>
+          <option>Alluminio</option><option>Legno</option><option>Legno/Alluminio</option><option>Altro</option>
+        </select></div>
+        <div class="field"><label>Colore serramento</label><input name="frame_color" placeholder="Es. bianco, noce/bianco, RAL..."></div>
+        <div class="field"><label>Vetro</label><input name="glass_spec" placeholder="Es. standard, satinato, sicurezza..."></div>
+        <div class="field"><label>Colore maniglia</label><input name="handle_color" placeholder="Es. bianco, satinato, nero"></div>
+      </div>
+
+      <div class="section">Zanzariera e oscuranti</div>
+      <div class="measure-grid">
+        <div class="field"><label>Zanzariera</label><select name="mosquito_net">
+          <option value="">Nessuna / da definire</option><option>Plissettata</option><option>Rullo</option><option>Scorrevole</option><option>Altro</option>
+        </select></div>
+        <div class="field"><label>Tapparella</label><select name="roller_shutter">
+          <option value="">Nessuna / da definire</option><option>Alluminio coibentato</option><option>PVC</option><option>Esistente da mantenere</option><option>Da sostituire</option>
+        </select></div>
+        <div class="field"><label>Comando tapparella</label><select name="roller_shutter_control">
+          <option value="">Da definire</option><option>Manuale cinghia</option><option>Motorizzata</option><option>Motorizzata + telecomando</option><option>Esistente</option>
+        </select></div>
+        <div class="field"><label>Colore tapparella</label><input name="roller_shutter_color" placeholder="Colore / RAL"></div>
+        <div class="field"><label>Persiana</label><input name="persiana" placeholder="Es. alluminio lamella 50, colore..."></div>
+      </div>
+
+      <div class="section">Cassonetto, monoblocco e posa</div>
+      <div class="measure-grid">
+        <div class="field"><label>Cassonetto</label><select name="cassonetto">
+          <option value="">Da definire</option><option>Esistente</option><option>Da rivestire</option><option>Da sostituire</option><option>Nuovo</option><option>Nessuno</option>
+        </select></div>
+        <div class="field"><label>Monoblocco</label><select name="monoblocco">
+          <option value="">Da definire</option><option>Esistente</option><option>Nuovo</option><option>Nessuno</option>
+        </select></div>
+        <div class="field"><label>Soglia / davanzale</label><input name="sill" placeholder="Es. soglia ribassata, marmo..."></div>
+        <div class="field"><label>Spessore muro mm</label><input name="wall_thickness_mm" type="number" min="1" inputmode="numeric"></div>
+        <div class="field"><label>Tipo posa</label><select name="installation_type">
+          <option value="">Da definire</option><option>Sostituzione su telaio esistente</option><option>Rimozione totale</option><option>Nuova costruzione</option><option>Posa su controtelaio</option><option>Altro</option>
+        </select></div>
+      </div>
+
+      <div class="field"><label>Note tecniche</label><textarea name="notes" placeholder="Coprifili, guide, celini, fuori squadra, opere murarie, accesso, piano, particolarità..."></textarea></div>
+      <button class="btn primary">+ Salva posizione</button>
     </form>
 
     <div class="section">Posizioni rilevate</div>
@@ -458,7 +503,14 @@ async function measurementsView(appointmentId){
         <div class="name">${i+1}. ${esc(r.position_name||r.room||"Posizione")}</div>
         <div class="meta">${esc(r.room||"")} ${r.opening_type?"· "+esc(r.opening_type):""}</div>
         <div class="measure-value">${r.width_mm||"—"} × ${r.height_mm||"—"} mm · Q.tà ${r.quantity}</div>
-        ${r.notes?`<div class="meta" style="margin-top:5px">${esc(r.notes)}</div>`:""}
+        ${r.profile||r.frame_color?`<div class="meta"><b>Serramento:</b> ${esc([r.profile,r.frame_color].filter(Boolean).join(" · "))}</div>`:""}
+        ${r.glass_spec?`<div class="meta"><b>Vetro:</b> ${esc(r.glass_spec)}</div>`:""}
+        ${r.mosquito_net?`<div class="meta"><b>Zanzariera:</b> ${esc(r.mosquito_net)}</div>`:""}
+        ${r.roller_shutter||r.roller_shutter_control?`<div class="meta"><b>Tapparella:</b> ${esc([r.roller_shutter,r.roller_shutter_control,r.roller_shutter_color].filter(Boolean).join(" · "))}</div>`:""}
+        ${r.persiana?`<div class="meta"><b>Persiana:</b> ${esc(r.persiana)}</div>`:""}
+        ${r.cassonetto||r.monoblocco?`<div class="meta"><b>Cassonetto/monoblocco:</b> ${esc([r.cassonetto,r.monoblocco].filter(Boolean).join(" · "))}</div>`:""}
+        ${r.sill||r.installation_type||r.wall_thickness_mm?`<div class="meta"><b>Posa:</b> ${esc([r.sill,r.installation_type,r.wall_thickness_mm?("muro "+r.wall_thickness_mm+" mm"):""].filter(Boolean).join(" · "))}</div>`:""}
+        ${r.notes?`<div class="outcome-box"><b>Note tecniche</b>${esc(r.notes)}</div>`:""}
         <div class="row" style="margin-top:8px">
           <button class="btn bad" data-del-measure="${r.id}">Elimina</button>
         </div>
@@ -473,6 +525,7 @@ async function measurementsView(appointmentId){
     x.quantity=Number(x.quantity||1);
     x.width_mm=x.width_mm?Number(x.width_mm):null;
     x.height_mm=x.height_mm?Number(x.height_mm):null;
+    x.wall_thickness_mm=x.wall_thickness_mm?Number(x.wall_thickness_mm):null;
     const {error}=await sb.from("appointment_measurements").insert(x);
     if(error) return alert(error.message);
     measurementsView(appointmentId);
