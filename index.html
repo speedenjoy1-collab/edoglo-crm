@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v7">
+  <meta name="edoglo-build" content="2026-11-03-v8">
   <title>Edoglò CRM</title>
   <style>
     :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#111827;background:#f8fafc}
@@ -48,6 +48,10 @@
     .appt-status.reschedule{background:#fef3c7;color:#92400e}
     .outcome-box{margin-top:10px;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #cbd5e1}
     .outcome-box b{display:block;margin-bottom:4px;color:#334155}
+    .measure-card{background:#fff;border:1px solid #cbd5e1;border-radius:14px;padding:12px;margin:9px 0}
+    .measure-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .measure-value{font-size:18px;font-weight:900}
+    @media(max-width:520px){.measure-grid{grid-template-columns:1fr}}
     .agenda-filters{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
     .agenda-filter{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:8px 11px;font-weight:800;cursor:pointer}
     .agenda-filter.active{background:#111827;color:#fff;border-color:#111827}
@@ -355,6 +359,7 @@ function apptCards(xs){
       <div class="row" style="margin-top:10px">
         <a class="btn blue" href="tel:${esc(a.phone||"")}">Chiama</a>
         <a class="btn ok" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a>
+        <button class="btn ghost" data-measures="${a.id}">Misure</button>
         ${a.status==="completed"
           ? `<span class="btn ok">✓ Completato</span>`
           : profile.role==="technician"
@@ -403,6 +408,82 @@ function bindAgendaActions(){
   document.querySelectorAll("[data-done]").forEach(b=>b.onclick=()=>setAppt(b.dataset.done,"completed"));
   document.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>setAppt(b.dataset.cancel,"cancelled"));
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editAppt(b.dataset.edit));
+  document.querySelectorAll("[data-measures]").forEach(b=>b.onclick=()=>measurementsView(b.dataset.measures));
+}
+
+
+async function measurementsView(appointmentId){
+  const a=appts.find(x=>x.id===appointmentId);
+  if(!a) return;
+  const {data:rows,error}=await sb.from("appointment_measurements")
+    .select("*")
+    .eq("appointment_id",appointmentId)
+    .order("created_at",{ascending:true});
+  if(error) return alert(error.message);
+
+  shell(`
+    <div class="section">Misure sopralluogo</div>
+    <div class="card">
+      <div class="name">${esc(a.client_name||"Cliente")}</div>
+      <div class="meta">${fmtDate(a.starts_at)} · ${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div>
+    </div>
+
+    <form id="mf" class="card">
+      <div class="section" style="margin-top:0">Aggiungi posizione</div>
+      <div class="measure-grid">
+        <div class="field"><label>Ambiente</label><input name="room" placeholder="Es. Soggiorno"></div>
+        <div class="field"><label>Posizione</label><input name="position_name" placeholder="Es. PF1"></div>
+        <div class="field"><label>Tipologia</label><select name="opening_type">
+          <option value="">Seleziona</option>
+          <option>Finestra 1 anta</option>
+          <option>Finestra 2 ante</option>
+          <option>Portafinestra 1 anta</option>
+          <option>Portafinestra 2 ante</option>
+          <option>Fisso</option>
+          <option>Scorrevole</option>
+          <option>Portoncino</option>
+          <option>Altro</option>
+        </select></div>
+        <div class="field"><label>Quantità</label><input name="quantity" type="number" min="1" value="1" required></div>
+        <div class="field"><label>Larghezza mm</label><input name="width_mm" type="number" min="1" inputmode="numeric"></div>
+        <div class="field"><label>Altezza mm</label><input name="height_mm" type="number" min="1" inputmode="numeric"></div>
+      </div>
+      <div class="field"><label>Note</label><textarea name="notes" placeholder="Cassonetto, soglia, colore, apertura, particolarità..."></textarea></div>
+      <button class="btn primary">+ Salva misura</button>
+    </form>
+
+    <div class="section">Posizioni rilevate</div>
+    ${rows?.length?rows.map((r,i)=>`
+      <div class="measure-card">
+        <div class="name">${i+1}. ${esc(r.position_name||r.room||"Posizione")}</div>
+        <div class="meta">${esc(r.room||"")} ${r.opening_type?"· "+esc(r.opening_type):""}</div>
+        <div class="measure-value">${r.width_mm||"—"} × ${r.height_mm||"—"} mm · Q.tà ${r.quantity}</div>
+        ${r.notes?`<div class="meta" style="margin-top:5px">${esc(r.notes)}</div>`:""}
+        <div class="row" style="margin-top:8px">
+          <button class="btn bad" data-del-measure="${r.id}">Elimina</button>
+        </div>
+      </div>`).join(""):'<div class="card">Nessuna misura inserita.</div>'}
+  `);
+
+  document.querySelector("#mf").onsubmit=async e=>{
+    e.preventDefault();
+    const x=Object.fromEntries(new FormData(e.currentTarget).entries());
+    x.appointment_id=appointmentId;
+    x.created_by=user.id;
+    x.quantity=Number(x.quantity||1);
+    x.width_mm=x.width_mm?Number(x.width_mm):null;
+    x.height_mm=x.height_mm?Number(x.height_mm):null;
+    const {error}=await sb.from("appointment_measurements").insert(x);
+    if(error) return alert(error.message);
+    measurementsView(appointmentId);
+  };
+
+  document.querySelectorAll("[data-del-measure]").forEach(b=>b.onclick=async()=>{
+    if(!confirm("Eliminare questa misura?")) return;
+    const {error}=await sb.from("appointment_measurements").delete().eq("id",b.dataset.delMeasure);
+    if(error) return alert(error.message);
+    measurementsView(appointmentId);
+  });
 }
 
 async function setAppt(id,status){
