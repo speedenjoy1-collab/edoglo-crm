@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v9">
+  <meta name="edoglo-build" content="2026-11-03-v10">
   <title>Edoglò CRM</title>
   <style>
     :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#111827;background:#f8fafc}
@@ -51,6 +51,12 @@
     .measure-card{background:#fff;border:1px solid #cbd5e1;border-radius:14px;padding:12px;margin:9px 0}
     .measure-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
     .measure-value{font-size:18px;font-weight:900}
+    .session-card{border:2px solid #e2e8f0}
+    .session-card.reference{border-color:#22c55e;background:#f0fdf4}
+    .session-badge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:900;margin:4px 5px 4px 0}
+    .session-badge.preliminary{background:#e0f2fe;color:#075985}
+    .session-badge.definitive{background:#ede9fe;color:#5b21b6}
+    .session-badge.reference{background:#166534;color:#fff}
     @media(max-width:520px){.measure-grid{grid-template-columns:1fr}}
     .agenda-filters{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
     .agenda-filter{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:8px 11px;font-weight:800;cursor:pointer}
@@ -412,39 +418,82 @@ function bindAgendaActions(){
 }
 
 
-async function measurementsView(appointmentId){
+async function measurementsView(appointmentId,sessionId=null){
   const a=appts.find(x=>x.id===appointmentId);
   if(!a) return;
-  const {data:rows,error}=await sb.from("appointment_measurements")
+
+  let {data:sessions,error:se}=await sb.from("measurement_sessions")
     .select("*")
     .eq("appointment_id",appointmentId)
+    .order("visit_number",{ascending:true});
+  if(se) return alert(se.message);
+
+  if(!sessions.length){
+    const {data:newSession,error:createErr}=await sb.from("measurement_sessions")
+      .insert({
+        appointment_id:appointmentId,
+        session_type:"preliminary",
+        visit_number:1,
+        status:"draft",
+        is_reference:false,
+        created_by:user.id
+      })
+      .select()
+      .single();
+    if(createErr) return alert(createErr.message);
+    sessions=[newSession];
+  }
+
+  const current=sessions.find(s=>s.id===sessionId)
+    || sessions.find(s=>s.status==="draft")
+    || sessions.find(s=>s.is_reference)
+    || sessions[sessions.length-1];
+
+  const {data:rows,error}=await sb.from("appointment_measurements")
+    .select("*")
+    .eq("session_id",current.id)
     .order("created_at",{ascending:true});
   if(error) return alert(error.message);
 
+  const sessionCards=sessions.map(s=>`
+    <div class="measure-card session-card ${s.is_reference?"reference":""}">
+      <div class="name">Rilievo ${s.visit_number}</div>
+      <div>
+        <span class="session-badge ${s.session_type}">${s.session_type==="definitive"?"MISURE DEFINITIVE":"PRIME MISURE"}</span>
+        ${s.is_reference?'<span class="session-badge reference">RIFERIMENTO CORRETTO</span>':""}
+      </div>
+      <div class="meta">${s.status==="saved"?"Salvato":"In compilazione"}${s.saved_at?" · "+fmt(s.saved_at):""}</div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn ghost" data-open-session="${s.id}">${s.id===current.id?"Aperto":"Apri"}</button>
+      </div>
+    </div>`).join("");
+
   shell(`
-    <div class="section">Rilievo misure</div>
+    <div class="section">Rilievi misure</div>
     <div class="card">
       <div class="name">${esc(a.client_name||"Cliente")}</div>
       <div class="meta">${fmtDate(a.starts_at)} · ${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div>
     </div>
 
+    <div class="section">Storico rilievi</div>
+    ${sessionCards}
+    <div class="row">
+      <button class="btn primary" id="newDefinitive">+ Nuove misure definitive</button>
+    </div>
+
+    <div class="section">${current.session_type==="definitive"?"Misure definitive":"Prime misure"} · Rilievo ${current.visit_number}</div>
+    ${current.is_reference?'<div class="notice" style="border-color:#86efac;background:#f0fdf4;color:#166534"><b>RIFERIMENTO CORRETTO:</b> queste sono le misure da usare.</div>':""}
+
     <form id="mf" class="card">
       <div class="section" style="margin-top:0">Nuova posizione</div>
-
-      <div class="section">Misure e apertura</div>
       <div class="measure-grid">
         <div class="field"><label>Ambiente</label><input name="room" placeholder="Es. Soggiorno"></div>
         <div class="field"><label>Posizione</label><input name="position_name" placeholder="Es. PF1"></div>
         <div class="field"><label>Tipologia</label><select name="opening_type">
           <option value="">Seleziona</option>
-          <option>Finestra 1 anta</option>
-          <option>Finestra 2 ante</option>
-          <option>Portafinestra 1 anta</option>
-          <option>Portafinestra 2 ante</option>
-          <option>Fisso</option>
-          <option>Scorrevole</option>
-          <option>Portoncino</option>
-          <option>Altro</option>
+          <option>Finestra 1 anta</option><option>Finestra 2 ante</option>
+          <option>Portafinestra 1 anta</option><option>Portafinestra 2 ante</option>
+          <option>Fisso</option><option>Scorrevole</option><option>Portoncino</option><option>Altro</option>
         </select></div>
         <div class="field"><label>Quantità</label><input name="quantity" type="number" min="1" value="1" required></div>
         <div class="field"><label>Larghezza mm</label><input name="width_mm" type="number" min="1" inputmode="numeric"></div>
@@ -454,8 +503,7 @@ async function measurementsView(appointmentId){
       <div class="section">Serramento</div>
       <div class="measure-grid">
         <div class="field"><label>Profilo / serie</label><select name="profile">
-          <option value="">Da definire</option>
-          <option>PVC 72</option><option>PVC 76</option><option>PVC 80</option><option>PVC 82</option>
+          <option value="">Da definire</option><option>PVC 72</option><option>PVC 76</option><option>PVC 80</option><option>PVC 82</option>
           <option>Alluminio</option><option>Legno</option><option>Legno/Alluminio</option><option>Altro</option>
         </select></div>
         <div class="field"><label>Colore serramento</label><input name="frame_color" placeholder="Es. bianco, noce/bianco, RAL..."></div>
@@ -507,20 +555,40 @@ async function measurementsView(appointmentId){
         ${r.glass_spec?`<div class="meta"><b>Vetro:</b> ${esc(r.glass_spec)}</div>`:""}
         ${r.mosquito_net?`<div class="meta"><b>Zanzariera:</b> ${esc(r.mosquito_net)}</div>`:""}
         ${r.roller_shutter||r.roller_shutter_control?`<div class="meta"><b>Tapparella:</b> ${esc([r.roller_shutter,r.roller_shutter_control,r.roller_shutter_color].filter(Boolean).join(" · "))}</div>`:""}
-        ${r.persiana?`<div class="meta"><b>Persiana:</b> ${esc(r.persiana)}</div>`:""}
-        ${r.cassonetto||r.monoblocco?`<div class="meta"><b>Cassonetto/monoblocco:</b> ${esc([r.cassonetto,r.monoblocco].filter(Boolean).join(" · "))}</div>`:""}
-        ${r.sill||r.installation_type||r.wall_thickness_mm?`<div class="meta"><b>Posa:</b> ${esc([r.sill,r.installation_type,r.wall_thickness_mm?("muro "+r.wall_thickness_mm+" mm"):""].filter(Boolean).join(" · "))}</div>`:""}
         ${r.notes?`<div class="outcome-box"><b>Note tecniche</b>${esc(r.notes)}</div>`:""}
         <div class="row" style="margin-top:8px">
+          <button class="btn ghost" data-edit-measure="${r.id}">Modifica</button>
           <button class="btn bad" data-del-measure="${r.id}">Elimina</button>
         </div>
       </div>`).join(""):'<div class="card">Nessuna misura inserita.</div>'}
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn ok" id="saveSurvey">✓ Salva rilievo</button>
+    </div>
+    <div class="notice">Il rilievo salvato resta sempre modificabile. Le misure definitive, quando presenti, diventano il riferimento corretto.</div>
   `);
+
+  document.querySelectorAll("[data-open-session]").forEach(b=>b.onclick=()=>measurementsView(appointmentId,b.dataset.openSession));
+
+  document.querySelector("#newDefinitive").onclick=async()=>{
+    const next=Math.max(...sessions.map(s=>s.visit_number),0)+1;
+    const {data:s,error}=await sb.from("measurement_sessions").insert({
+      appointment_id:appointmentId,
+      session_type:"definitive",
+      visit_number:next,
+      status:"draft",
+      is_reference:false,
+      created_by:user.id
+    }).select().single();
+    if(error) return alert(error.message);
+    measurementsView(appointmentId,s.id);
+  };
 
   document.querySelector("#mf").onsubmit=async e=>{
     e.preventDefault();
     const x=Object.fromEntries(new FormData(e.currentTarget).entries());
     x.appointment_id=appointmentId;
+    x.session_id=current.id;
     x.created_by=user.id;
     x.quantity=Number(x.quantity||1);
     x.width_mm=x.width_mm?Number(x.width_mm):null;
@@ -528,15 +596,44 @@ async function measurementsView(appointmentId){
     x.wall_thickness_mm=x.wall_thickness_mm?Number(x.wall_thickness_mm):null;
     const {error}=await sb.from("appointment_measurements").insert(x);
     if(error) return alert(error.message);
-    measurementsView(appointmentId);
+    measurementsView(appointmentId,current.id);
   };
+
+  document.querySelectorAll("[data-edit-measure]").forEach(b=>b.onclick=async()=>{
+    const r=rows.find(x=>x.id===b.dataset.editMeasure);
+    if(!r) return;
+    const width=prompt("Larghezza in mm:",r.width_mm??"");
+    if(width===null) return;
+    const height=prompt("Altezza in mm:",r.height_mm??"");
+    if(height===null) return;
+    const qty=prompt("Quantità:",r.quantity??1);
+    if(qty===null) return;
+    const notes=prompt("Note tecniche:",r.notes??"");
+    if(notes===null) return;
+    const patch={
+      width_mm:width?Number(width):null,
+      height_mm:height?Number(height):null,
+      quantity:Number(qty||1),
+      notes
+    };
+    const {error}=await sb.from("appointment_measurements").update(patch).eq("id",r.id);
+    if(error) return alert(error.message);
+    measurementsView(appointmentId,current.id);
+  });
 
   document.querySelectorAll("[data-del-measure]").forEach(b=>b.onclick=async()=>{
     if(!confirm("Eliminare questa misura?")) return;
     const {error}=await sb.from("appointment_measurements").delete().eq("id",b.dataset.delMeasure);
     if(error) return alert(error.message);
-    measurementsView(appointmentId);
+    measurementsView(appointmentId,current.id);
   });
+
+  document.querySelector("#saveSurvey").onclick=async()=>{
+    const {error}=await sb.rpc("save_measurement_session",{p_session_id:current.id});
+    if(error) return alert(error.message.includes("NESSUNA_MISURA")?"Inserisci almeno una posizione prima di salvare.":error.message);
+    alert(current.session_type==="definitive"?"Misure definitive salvate: ora sono il riferimento corretto.":"Prime misure salvate.");
+    measurementsView(appointmentId,current.id);
+  };
 }
 
 async function setAppt(id,status){
