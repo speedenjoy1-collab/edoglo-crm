@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v2">
+  <meta name="edoglo-build" content="2026-11-03-v3">
   <title>Edoglò CRM</title>
   <style>
     :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#111827;background:#f8fafc}
@@ -92,23 +92,26 @@ function login(){
     <div class="notice">Il primo account creato nel CRM diventa amministratore. Crealo tu prima dell'accesso di Antonio.</div>
   </div>`;
 
-  go.onclick=async()=>{
-    const {error}=await sb.auth.signInWithPassword({email:email.value.trim(),password:pw.value});
-    m.innerHTML=error?`<div class="msg error">${esc(error.message)}</div>`:`<div class="msg success">Accesso eseguito</div>`;
+  const emailEl=document.querySelector("#email");
+  const pwEl=document.querySelector("#pw");
+  const msgEl=document.querySelector("#m");
+  document.querySelector("#go").onclick=async()=>{
+    const {error}=await sb.auth.signInWithPassword({email:emailEl.value.trim(),password:pwEl.value});
+    msgEl.innerHTML=error?`<div class="msg error">${esc(error.message)}</div>`:`<div class="msg success">Accesso eseguito</div>`;
     if(!error) location.reload();
   };
 
-  signup.onclick=async()=>{
-    if(!email.value || pw.value.length<8){
-      m.innerHTML='<div class="msg error">Inserisci email e password di almeno 8 caratteri.</div>';
+  document.querySelector("#signup").onclick=async()=>{
+    if(!emailEl.value || pwEl.value.length<8){
+      msgEl.innerHTML='<div class="msg error">Inserisci email e password di almeno 8 caratteri.</div>';
       return;
     }
     const {error}=await sb.auth.signUp({
-      email:email.value.trim(),
-      password:pw.value,
-      options:{data:{full_name:email.value.split("@")[0]},emailRedirectTo:"https://edoglo-crm.onrender.com"}
+      email:emailEl.value.trim(),
+      password:pwEl.value,
+      options:{data:{full_name:emailEl.value.split("@")[0]},emailRedirectTo:"https://edoglo-crm.onrender.com"}
     });
-    m.innerHTML=error?`<div class="msg error">${esc(error.message)}</div>`:`<div class="msg success">Account creato. Se ricevi una mail, confermala e poi accedi.</div>`;
+    msgEl.innerHTML=error?`<div class="msg error">${esc(error.message)}</div>`:`<div class="msg success">Account creato. Se ricevi una mail, confermala e poi accedi.</div>`;
   };
 }
 
@@ -119,7 +122,7 @@ function unauthorized(){
     <div class="notice">Account creato ma non ancora autorizzato nel CRM.</div>
     <button class="btn ghost" id="out">Esci</button>
   </div>`;
-  out.onclick=async()=>{await sb.auth.signOut();location.reload();};
+  document.querySelector("#out").onclick=async()=>{await sb.auth.signOut();location.reload();};
 }
 
 async function load(){
@@ -159,7 +162,7 @@ function shell(body){
     ${body}
   </div>
   ${nav()}`;
-  logout.onclick=async()=>{await sb.auth.signOut();location.reload();};
+  document.querySelector("#logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
   document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
 }
 
@@ -184,7 +187,7 @@ function home(){
     <div class="section">Disponibilità prossimi 7 giorni</div>
     ${availabilityHtml()}
   `);
-  newLead.onclick=()=>leadForm();
+  document.querySelector("#newLead").onclick=()=>leadForm();
 }
 
 function leadCards(){
@@ -203,7 +206,7 @@ function leadCards(){
 
 function leadsView(){
   shell(`<div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div><div class="section">Lead</div>${leadCards()}`);
-  newLead.onclick=()=>leadForm();
+  document.querySelector("#newLead").onclick=()=>leadForm();
   document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
 }
 
@@ -223,7 +226,7 @@ function leadForm(){
       <button class="btn primary">Salva</button>
     </form>`);
 
-  f.onsubmit=async e=>{
+  document.querySelector("#f").onsubmit=async e=>{
     e.preventDefault();
     const x=Object.fromEntries(new FormData(f).entries());
     x.windows_count=x.windows_count?Number(x.windows_count):null;
@@ -258,7 +261,7 @@ function leadDetail(id){
     </div>
   `);
 
-  schedule.onclick=()=>apptForm(l);
+  document.querySelector("#schedule").onclick=()=>apptForm(l);
 
   document.querySelectorAll("[data-s]").forEach(b=>b.onclick=async()=>{
     let p={status:b.dataset.s};
@@ -330,7 +333,7 @@ function apptForm(l){
       <button class="btn primary">Conferma sopralluogo</button>
     </form>`);
 
-  af.onsubmit=async e=>{
+  document.querySelector("#af").onsubmit=async e=>{
     e.preventDefault();
     const x=Object.fromEntries(new FormData(af).entries());
     const t=techs.find(t=>t.id===x.technician_id);
@@ -373,7 +376,7 @@ function editAppt(id){
       <div class="field"><label>Note</label><textarea name="notes">${esc(a.notes||"")}</textarea></div>
       <button class="btn primary">Salva modifiche</button>
     </form>`);
-  ef.onsubmit=async e=>{
+  document.querySelector("#ef").onsubmit=async e=>{
     e.preventDefault();
     const x=Object.fromEntries(new FormData(ef).entries());
     const t=techs.find(t=>t.id===x.technician_id);
@@ -399,7 +402,7 @@ function unavailabilityForm(){
       <div class="field"><label>Motivo</label><input name="reason" placeholder="Ferie, permesso, impegno..."></div>
       <button class="btn primary">Salva indisponibilità</button>
     </form>`);
-  uf.onsubmit=async e=>{
+  document.querySelector("#uf").onsubmit=async e=>{
     e.preventDefault();
     const x=Object.fromEntries(new FormData(uf).entries());
     x.starts_at=new Date(x.starts_at).toISOString();
@@ -451,7 +454,7 @@ function staff(){
     <div class="section">Indisponibilità</div>
     ${unavail.filter(u=>new Date(u.ends_at)>=new Date()).map(u=>`<div class="card"><div class="name">🚫 ${fmt(u.starts_at)} → ${fmt(u.ends_at)}</div><div class="meta">${esc(u.reason||"Indisponibile")}</div><div class="row" style="margin-top:8px"><button class="btn bad" data-del-un="${u.id}">Elimina</button></div></div>`).join("") || '<div class="card">Nessuna indisponibilità futura.</div>'}
   `);
-  addUn.onclick=()=>unavailabilityForm();
+  document.querySelector("#addUn").onclick=()=>unavailabilityForm();
   document.querySelectorAll("[data-del-un]").forEach(b=>b.onclick=()=>deleteUnavailability(b.dataset.delUn));
 }
 
