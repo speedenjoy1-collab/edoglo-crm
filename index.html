@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v12">
+  <meta name="edoglo-build" content="2026-11-03-v13">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -661,7 +661,7 @@ async function measurementsView(appointmentId,sessionId=null){
         <div class="field"><label>Altezza mm</label><input name="height_mm" type="number" min="1" inputmode="numeric"></div>
       </div>
 
-      <div class="section">Serramento</div>
+      <div class="section" data-form-section="product">Dettagli ${esc(selectedProduct)}</div>
       <div class="measure-grid">
         <div class="field"><label>Profilo / serie</label><select name="profile">
           <option value="">Da definire</option><option>PVC 72</option><option>PVC 76</option><option>PVC 80</option><option>PVC 82</option>
@@ -672,7 +672,7 @@ async function measurementsView(appointmentId,sessionId=null){
         <div class="field"><label>Colore maniglia</label><input name="handle_color" placeholder="Es. bianco, satinato, nero"></div>
       </div>
 
-      <div class="section">Zanzariera e oscuranti</div>
+      <div class="section" data-form-section="accessories">Dettagli ${esc(selectedProduct)}</div>
       <div class="measure-grid">
         <div class="field"><label>Zanzariera</label><select name="mosquito_net">
           <option value="">Nessuna / da definire</option><option>Plissettata</option><option>Rullo</option><option>Scorrevole</option><option>Altro</option>
@@ -687,7 +687,7 @@ async function measurementsView(appointmentId,sessionId=null){
         <div class="field"><label>Persiana</label><input name="persiana" placeholder="Es. alluminio lamella 50, colore..."></div>
       </div>
 
-      <div class="section">Cassonetto, monoblocco e posa</div>
+      <div class="section" data-form-section="installation">${selectedProduct==="Cassonetto / monoblocco"?"Cassonetto / monoblocco":"Posa / dettagli tecnici"}</div>
       <div class="measure-grid">
         <div class="field"><label>Cassonetto</label><select name="cassonetto">
           <option value="">Da definire</option><option>Esistente</option><option>Da rivestire</option><option>Da sostituire</option><option>Nuovo</option><option>Nessuno</option>
@@ -703,7 +703,19 @@ async function measurementsView(appointmentId,sessionId=null){
       </div>
 
       <div class="field product-generic"><label>Dettaglio / modello</label><input name="product_detail" placeholder="Modello, serie, motore, BTU, finitura..."></div>
-      <div class="field product-generic"><label>Apertura / verso / comando</label><input name="opening_direction" placeholder="DX, SX, spingere, manuale, motore..."></div>
+      <div class="field product-generic"><label>Senso di apertura</label><select name="opening_direction">
+        <option value="">Seleziona</option>
+        <option>DX</option>
+        <option>SX</option>
+        <option>Spingere DX</option>
+        <option>Spingere SX</option>
+        <option>Tirare DX</option>
+        <option>Tirare SX</option>
+        <option>2 ante - principale DX</option>
+        <option>2 ante - principale SX</option>
+        <option>Fisso</option>
+        <option>Altro</option>
+      </select></div>
       <div class="field"><label>Note / accorgimenti</label><textarea name="notes" placeholder="Inserisci qui tutto ciò che serve ricordare per questa posizione..."></textarea></div>
       <button class="btn primary">+ Salva posizione</button>
     </form>
@@ -718,6 +730,7 @@ async function measurementsView(appointmentId,sessionId=null){
         ${r.glass_spec?`<div class="meta"><b>Vetro:</b> ${esc(r.glass_spec)}</div>`:""}
         ${r.mosquito_net?`<div class="meta"><b>Zanzariera:</b> ${esc(r.mosquito_net)}</div>`:""}
         ${r.roller_shutter||r.roller_shutter_control?`<div class="meta"><b>Tapparella:</b> ${esc([r.roller_shutter,r.roller_shutter_control,r.roller_shutter_color].filter(Boolean).join(" · "))}</div>`:""}
+        ${r.opening_direction?`<div class="meta"><b>Senso apertura:</b> ${esc(r.opening_direction)}</div>`:""}
         ${r.notes?`<div class="outcome-box"><b>Note tecniche</b>${esc(r.notes)}</div>`:""}
         <div class="row" style="margin-top:8px">
           <button class="btn ghost" data-edit-measure="${r.id}">Modifica</button>
@@ -753,17 +766,17 @@ async function measurementsView(appointmentId,sessionId=null){
   };
 
   const fieldNames={
-    "Serramento":["opening_type","profile","glass_spec","handle_color","sill","wall_thickness_mm","installation_type"],
+    "Serramento":["opening_type","profile","glass_spec","handle_color","opening_direction","sill","wall_thickness_mm","installation_type"],
     "Tapparella":["roller_shutter","roller_shutter_control","product_detail"],
     "Zanzariera":["mosquito_net","product_detail"],
     "Porta blindata":["product_detail","opening_direction","sill","wall_thickness_mm","installation_type"],
     "Porta interna":["product_detail","opening_direction","sill"],
     "Portoncino":["product_detail","opening_direction","sill","wall_thickness_mm","installation_type"],
     "Persiana":["persiana","opening_direction","product_detail"],
-    "Tenda da sole":["product_detail","opening_direction"],
-    "Condizionatore":["product_detail","opening_direction"],
+    "Tenda da sole":["product_detail"],
+    "Condizionatore":["product_detail"],
     "Cassonetto / monoblocco":["cassonetto","monoblocco","product_detail","wall_thickness_mm"],
-    "Altro":["product_detail","opening_direction"]
+    "Altro":["product_detail"]
   };
   const always=["room","quantity","width_mm","height_mm","notes","position_name"];
   document.querySelectorAll("#mf .field").forEach(el=>{
@@ -773,14 +786,12 @@ async function measurementsView(appointmentId,sessionId=null){
     if(always.includes(name)) return;
     if(!(fieldNames[selectedProduct]||[]).includes(name)) el.remove();
   });
-  document.querySelectorAll("#mf .section").forEach(s=>{
-    let n=s.nextElementSibling;
-    let hasField=false;
-    while(n && !n.classList.contains("section")){
-      if(n.classList?.contains("measure-grid") && n.querySelector(".field")) hasField=true;
-      n=n.nextElementSibling;
+  document.querySelectorAll("#mf [data-form-section]").forEach(s=>{
+    const grid=s.nextElementSibling;
+    if(!grid || !grid.classList.contains("measure-grid") || !grid.querySelector(".field")){
+      if(grid?.classList.contains("measure-grid")) grid.remove();
+      s.remove();
     }
-    if(!hasField && s.textContent.trim()!=="") s.style.display="none";
   });
 
   document.querySelector("#mf").onsubmit=async e=>{
