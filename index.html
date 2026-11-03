@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v11">
+  <meta name="edoglo-build" content="2026-11-03-v12">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -139,6 +139,14 @@
     .role-technician form.card>.primary{width:100%;min-height:48px}
     .role-technician .measure-card .row .btn{flex:1}
     .role-technician #saveSurvey{width:100%;min-height:50px;background:#166534;color:#fff}
+    .survey-step{background:#fff;border:1px solid #dbe3ee;border-radius:18px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+    .survey-step-title{font-size:12px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+    .product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .product-btn{border:1px solid #cbd5e1;background:#fff;border-radius:14px;padding:14px 10px;font-weight:900;min-height:58px;cursor:pointer;color:#0f172a}
+    .product-btn.active{background:#0f172a;color:#fff;border-color:#0f172a}
+    .survey-current{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:15px;padding:12px 14px;margin:10px 0}
+    .position-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .position-number{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;background:#0f172a;color:#fff;font-size:18px;font-weight:950}
     @media(max-width:640px){
       .wrap{padding:12px 12px 100px}
       .top{padding-top:8px}
@@ -171,6 +179,7 @@ const sb=createClient(
 
 const app=document.querySelector("#app");
 let user=null, profile=null, leads=[], appts=[], techs=[], unavail=[], view="home";
+const surveyStateBySession={};
 
 const esc=v=>String(v??"").replace(/[&<>'"]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[s]));
 const digits=v=>String(v||"").replace(/[^0-9]/g,"");
@@ -557,6 +566,49 @@ async function measurementsView(appointmentId,sessionId=null){
     .order("created_at",{ascending:true});
   if(error) return alert(error.message);
 
+  const products=["Serramento","Tapparella","Zanzariera","Porta blindata","Porta interna","Portoncino","Persiana","Tenda da sole","Condizionatore","Cassonetto / monoblocco","Altro"];
+  const surveyState=surveyStateBySession[current.id]||null;
+  const nextPos=rows.length+1;
+
+  if(!surveyState){
+    shell(`
+      <div class="section">Rilievo misure</div>
+      <div class="card">
+        <div class="name">${esc(a.client_name||"Cliente")}</div>
+        <div class="meta">${fmtDate(a.starts_at)} · ${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div>
+      </div>
+      <div class="survey-step">
+        <div class="survey-step-title">1 · Cosa devi misurare?</div>
+        <div class="product-grid">
+          ${products.map(p=>`<button type="button" class="product-btn" data-product="${esc(p)}">${esc(p)}</button>`).join("")}
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label>Colore / finitura</label>
+          <input id="surveyColor" placeholder="Es. bianco, noce, RAL 7016, non applicabile">
+        </div>
+        <button class="btn primary" id="confirmProduct" style="width:100%" disabled>OK · Inizia rilievo</button>
+      </div>
+      <div class="section">Posizioni già salvate</div>
+      ${rows.length?rows.map((r,i)=>`<div class="measure-card"><div class="name">Pos. ${i+1} · ${esc(r.product_type||"Rilievo")}</div><div class="meta">${esc(r.room||"")} · ${esc(r.product_color||"")}</div><div class="measure-value">${r.width_mm||"—"} × ${r.height_mm||"—"} mm</div></div>`).join(""):'<div class="card">Nessuna posizione salvata.</div>'}
+    `);
+    let chosen="";
+    document.querySelectorAll("[data-product]").forEach(b=>b.onclick=()=>{
+      document.querySelectorAll("[data-product]").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      chosen=b.dataset.product;
+      document.querySelector("#confirmProduct").disabled=false;
+    });
+    document.querySelector("#confirmProduct").onclick=()=>{
+      if(!chosen) return;
+      surveyStateBySession[current.id]={product:chosen,color:document.querySelector("#surveyColor").value.trim()};
+      measurementsView(appointmentId,current.id);
+    };
+    return;
+  }
+
+  const selectedProduct=surveyState.product;
+  const selectedColor=surveyState.color;
+
   const sessionCards=sessions.map(s=>`
     <div class="measure-card session-card ${s.is_reference?"reference":""}">
       <div class="name">Rilievo ${s.visit_number}</div>
@@ -587,10 +639,17 @@ async function measurementsView(appointmentId,sessionId=null){
     ${current.is_reference?'<div class="notice" style="border-color:#86efac;background:#f0fdf4;color:#166534"><b>RIFERIMENTO CORRETTO:</b> queste sono le misure da usare.</div>':""}
 
     <form id="mf" class="card">
-      <div class="section" style="margin-top:0">Nuova posizione</div>
+      <div class="survey-current">
+        <div><div class="meta">Stai rilevando</div><div class="name">${esc(selectedProduct)}</div><div class="meta">Colore: ${esc(selectedColor||"non indicato")}</div></div>
+        <button type="button" class="btn ghost" id="changeProduct">Cambia rilievo</button>
+      </div>
+      <div class="position-head">
+        <div><div class="survey-step-title">2 · Compila posizione</div><div class="name">Posizione ${nextPos}</div></div>
+        <div class="position-number">${nextPos}</div>
+      </div>
       <div class="measure-grid">
         <div class="field"><label>Ambiente</label><input name="room" placeholder="Es. Soggiorno"></div>
-        <div class="field"><label>Posizione</label><input name="position_name" placeholder="Es. PF1"></div>
+        <input type="hidden" name="position_name" value="Pos. ${nextPos}">
         <div class="field"><label>Tipologia</label><select name="opening_type">
           <option value="">Seleziona</option>
           <option>Finestra 1 anta</option><option>Finestra 2 ante</option>
@@ -643,15 +702,17 @@ async function measurementsView(appointmentId,sessionId=null){
         </select></div>
       </div>
 
-      <div class="field"><label>Note tecniche</label><textarea name="notes" placeholder="Coprifili, guide, celini, fuori squadra, opere murarie, accesso, piano, particolarità..."></textarea></div>
+      <div class="field product-generic"><label>Dettaglio / modello</label><input name="product_detail" placeholder="Modello, serie, motore, BTU, finitura..."></div>
+      <div class="field product-generic"><label>Apertura / verso / comando</label><input name="opening_direction" placeholder="DX, SX, spingere, manuale, motore..."></div>
+      <div class="field"><label>Note / accorgimenti</label><textarea name="notes" placeholder="Inserisci qui tutto ciò che serve ricordare per questa posizione..."></textarea></div>
       <button class="btn primary">+ Salva posizione</button>
     </form>
 
     <div class="section">Posizioni rilevate</div>
     ${rows?.length?rows.map((r,i)=>`
       <div class="measure-card">
-        <div class="name">${i+1}. ${esc(r.position_name||r.room||"Posizione")}</div>
-        <div class="meta">${esc(r.room||"")} ${r.opening_type?"· "+esc(r.opening_type):""}</div>
+        <div class="name">Pos. ${i+1} · ${esc(r.product_type||"Rilievo")}</div>
+        <div class="meta">${esc(r.room||"Ambiente non indicato")} · Colore: ${esc(r.product_color||"—")} ${r.opening_type?"· "+esc(r.opening_type):""}</div>
         <div class="measure-value">${r.width_mm||"—"} × ${r.height_mm||"—"} mm · Q.tà ${r.quantity}</div>
         ${r.profile||r.frame_color?`<div class="meta"><b>Serramento:</b> ${esc([r.profile,r.frame_color].filter(Boolean).join(" · "))}</div>`:""}
         ${r.glass_spec?`<div class="meta"><b>Vetro:</b> ${esc(r.glass_spec)}</div>`:""}
@@ -686,12 +747,53 @@ async function measurementsView(appointmentId,sessionId=null){
     measurementsView(appointmentId,s.id);
   };
 
+  document.querySelector("#changeProduct").onclick=()=>{
+    delete surveyStateBySession[current.id];
+    measurementsView(appointmentId,current.id);
+  };
+
+  const fieldNames={
+    "Serramento":["opening_type","profile","glass_spec","handle_color","sill","wall_thickness_mm","installation_type"],
+    "Tapparella":["roller_shutter","roller_shutter_control","product_detail"],
+    "Zanzariera":["mosquito_net","product_detail"],
+    "Porta blindata":["product_detail","opening_direction","sill","wall_thickness_mm","installation_type"],
+    "Porta interna":["product_detail","opening_direction","sill"],
+    "Portoncino":["product_detail","opening_direction","sill","wall_thickness_mm","installation_type"],
+    "Persiana":["persiana","opening_direction","product_detail"],
+    "Tenda da sole":["product_detail","opening_direction"],
+    "Condizionatore":["product_detail","opening_direction"],
+    "Cassonetto / monoblocco":["cassonetto","monoblocco","product_detail","wall_thickness_mm"],
+    "Altro":["product_detail","opening_direction"]
+  };
+  const always=["room","quantity","width_mm","height_mm","notes","position_name"];
+  document.querySelectorAll("#mf .field").forEach(el=>{
+    const control=el.querySelector("[name]");
+    if(!control) return;
+    const name=control.name;
+    if(always.includes(name)) return;
+    if(!(fieldNames[selectedProduct]||[]).includes(name)) el.remove();
+  });
+  document.querySelectorAll("#mf .section").forEach(s=>{
+    let n=s.nextElementSibling;
+    let hasField=false;
+    while(n && !n.classList.contains("section")){
+      if(n.classList?.contains("measure-grid") && n.querySelector(".field")) hasField=true;
+      n=n.nextElementSibling;
+    }
+    if(!hasField && s.textContent.trim()!=="") s.style.display="none";
+  });
+
   document.querySelector("#mf").onsubmit=async e=>{
     e.preventDefault();
     const x=Object.fromEntries(new FormData(e.currentTarget).entries());
     x.appointment_id=appointmentId;
     x.session_id=current.id;
     x.created_by=user.id;
+    x.product_type=selectedProduct;
+    x.product_color=selectedColor;
+    x.position_name="Pos. "+nextPos;
+    if(selectedProduct==="Serramento") x.frame_color=selectedColor;
+    if(selectedProduct==="Tapparella") x.roller_shutter_color=selectedColor;
     x.quantity=Number(x.quantity||1);
     x.width_mm=x.width_mm?Number(x.width_mm):null;
     x.height_mm=x.height_mm?Number(x.height_mm):null;
