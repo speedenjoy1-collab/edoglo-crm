@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v13">
+  <meta name="edoglo-build" content="2026-11-03-v14">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -148,20 +148,51 @@
     .position-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
     .position-number{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;background:#0f172a;color:#fff;font-size:18px;font-weight:950}
     @media(max-width:640px){
-      .wrap{padding:12px 12px 100px}
-      .top{padding-top:8px}
-      .brand-mark{width:38px;height:38px;border-radius:11px}
-      h1{font-size:20px}
-      .stats{gap:9px}.stat{min-height:100px;padding:13px}.stat b{font-size:27px}
-      .card{border-radius:15px;padding:14px}
-      .section{font-size:17px;margin-top:20px}
-      .appt-date{align-items:flex-start;flex-direction:column}
-      .appt-time{font-size:18px}
+      body{font-size:17px}
+      .wrap{padding:12px 10px 108px}
+      .top{padding-top:8px;margin-bottom:12px}
+      .brand-mark{width:42px;height:42px;border-radius:12px;font-size:19px}
+      h1{font-size:22px}
+      .sub{font-size:14px}
+      .role-chip{font-size:11px;padding:5px 9px}
+      .stats{gap:9px}
+      .stat{min-height:106px;padding:15px}
+      .stat b{font-size:30px}
+      .stat span{font-size:14px}
+      .card{border-radius:16px;padding:16px}
+      .name{font-size:20px}
+      .meta{font-size:15px}
+      .section{font-size:19px;margin-top:22px}
+      .btn{font-size:15px;min-height:48px;padding:12px 14px}
+      .field{gap:7px;margin:12px 0}
+      .field label{font-size:14px}
+      .field input,.field select,.field textarea,.lead-tools input,.lead-tools select{
+        font-size:17px;padding:14px 13px;border-radius:13px;min-height:50px
+      }
+      .field textarea{min-height:108px}
+      .appt-date{align-items:flex-start;flex-direction:column;padding:14px}
+      .appt-date-main{font-size:20px}
+      .appt-time{font-size:20px}
+      .appt-status{font-size:12px;padding:6px 10px}
+      .today-tag{font-size:11px;padding:4px 8px}
       .lead-tools{grid-template-columns:1fr}
       .measure-grid{grid-template-columns:1fr}
-      .tabs{justify-content:stretch}
-      .tab{flex:1;min-width:0;padding:10px 7px;font-size:12px}
-      .top>.btn{padding:9px 10px;min-height:38px}
+      .measure-card{padding:16px}
+      .measure-value{font-size:22px}
+      .survey-step{padding:17px}
+      .survey-step-title{font-size:13px}
+      .survey-current{padding:14px}
+      .product-btn{font-size:15px;min-height:64px;padding:14px 9px}
+      .position-number{width:48px;height:48px;font-size:20px}
+      .tabs{justify-content:stretch;padding-top:10px}
+      .tab{flex:1;min-width:0;padding:12px 8px;font-size:14px;min-height:48px}
+      .top>.btn{padding:10px 12px;min-height:42px;font-size:14px}
+      .role-technician .appt{padding:18px}
+      .role-technician .appt .name{font-size:22px}
+      .role-technician .appt .meta{font-size:15px}
+      .role-technician .appt .row .btn{min-height:52px;font-size:16px}
+      .role-technician form.card>.primary,
+      .role-technician #saveSurvey{min-height:54px;font-size:16px}
     }
     @media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
   </style>
