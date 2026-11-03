@@ -105,7 +105,7 @@ function login(){
     const {error}=await sb.auth.signUp({
       email:email.value.trim(),
       password:pw.value,
-      options:{data:{full_name:email.value.split("@")[0]}}
+      options:{data:{full_name:email.value.split("@")[0]},emailRedirectTo:"https://edoglo-crm.onrender.com"}
     });
     m.innerHTML=error?`<div class="msg error">${esc(error.message)}</div>`:`<div class="msg success">Account creato. Se ricevi una mail, confermala e poi accedi.</div>`;
   };
