@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v3">
+  <meta name="edoglo-build" content="2026-11-03-v4">
   <title>Edoglò CRM</title>
   <style>
     :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#111827;background:#f8fafc}
@@ -29,6 +29,13 @@
     .login{max-width:420px;margin:10vh auto;padding:18px}.msg{margin:10px 0;padding:10px;border-radius:12px}.error{background:#fee2e2;color:#991b1b}.success{background:#dcfce7;color:#166534}
     .notice{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:12px;border-radius:14px;margin:10px 0}
     .appt{border-left:4px solid #c4b5fd}.today{border-left-color:#22c55e}
+    .appt-date{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px 12px;margin:8px 0 10px}
+    .appt-date-main{font-size:17px;font-weight:900;color:#1e3a8a;text-transform:capitalize}
+    .appt-time{font-size:16px;font-weight:900;color:#111827;white-space:nowrap}
+    .today .appt-date{background:#ecfdf5;border-color:#86efac}
+    .today .appt-date-main{color:#166534}
+    .today-tag{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#166534;color:#fff;font-size:11px;font-weight:900;vertical-align:middle}
+    @media(max-width:480px){.appt-date{align-items:flex-start;flex-direction:column}.appt-time{font-size:17px}}
     .slot{display:inline-block;padding:6px 8px;border-radius:9px;margin:3px;background:#dcfce7;font-size:12px}.slot.busy{background:#f1f5f9;color:#94a3b8;text-decoration:line-through}
     @media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
   </style>
@@ -50,6 +57,8 @@ let user=null, profile=null, leads=[], appts=[], techs=[], unavail=[], view="hom
 const esc=v=>String(v??"").replace(/[&<>'"]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[s]));
 const digits=v=>String(v||"").replace(/[^0-9]/g,"");
 const fmt=x=>new Intl.DateTimeFormat("it-IT",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x));
+const fmtDate=x=>new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric",timeZone:"Europe/Rome"}).format(new Date(x));
+const fmtTime=x=>new Intl.DateTimeFormat("it-IT",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x));
 const day=x=>new Intl.DateTimeFormat("sv-SE",{year:"numeric",month:"2-digit",day:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x));
 const now=()=>new Date().toISOString();
 
@@ -279,7 +288,11 @@ function apptCards(xs){
   return xs.map(a=>`
     <div class="card appt ${day(a.starts_at)===day(now())?"today":""}">
       <div class="name">${esc(a.client_name||"Cliente")}</div>
-      <div class="meta">${fmt(a.starts_at)} · ${esc(a.technician_name||"Antonio")}</div>
+      <div class="appt-date">
+        <div class="appt-date-main">${fmtDate(a.starts_at)}${day(a.starts_at)===day(now())?'<span class="today-tag">OGGI</span>':""}</div>
+        <div class="appt-time">${fmtTime(a.starts_at)} – ${fmtTime(a.ends_at)}</div>
+      </div>
+      <div class="meta">Tecnico: ${esc(a.technician_name||"Antonio")}</div>
       <div><b>${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</b></div>
       <div class="meta">${esc(a.notes||"")}</div>
       <div class="row" style="margin-top:10px">
