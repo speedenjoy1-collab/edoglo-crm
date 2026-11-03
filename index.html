@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v16">
+  <meta name="edoglo-build" content="2026-11-03-v17">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -371,7 +371,7 @@ function home(){
     <div class="section">Prossimi sopralluoghi</div>
     ${apptCards(appts.filter(a=>new Date(a.ends_at)>=new Date()&&a.status!=="cancelled").slice(0,6))}
     <div class="section">Disponibilità prossimi 7 giorni</div>
-    ${availabilityHtml()}
+    ${richAgendaHtml(7)}
   `);
   document.querySelector("#newLead").onclick=()=>leadForm();
   document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
