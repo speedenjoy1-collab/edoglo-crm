@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v17">
+  <meta name="edoglo-build" content="2026-11-03-v18">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -323,7 +323,7 @@ async function load(){
 
 function nav(){
   const items=profile.role==="admin"
-    ? [["home","Home"],["leads","Lead"],["agenda","Agenda"],["staff","Tecnici"]]
+    ? [["home","Home"],["leads","Lead"],["quotes","Preventivi"],["agenda","Agenda"],["staff","Tecnici"]]
     : [["agenda","Oggi"],["availability","Agenda"]];
   return `<div class="tabs">${items.map(([v,n])=>`<button class="tab ${view===v?"active":""}" data-v="${v}">${n}</button>`).join("")}</div>`;
 }
@@ -353,9 +353,42 @@ function shell(body){
 
 function render(){
   if(profile.role==="technician" && view==="home") view="agenda";
-  ({home,leads:leadsView,agenda,availability,staff}[view]||home)();
+  ({home,leads:leadsView,quotes:quotesView,agenda,availability,staff}[view]||home)();
 }
 
+const quoteLabel={not_required:"Non richiesto",to_prepare:"Preventivo da fare",sent:"Preventivo inviato",accepted:"Accettato",declined:"Non accettato"};
+const originLabel={digital:"Lead online",manual:"Inserito manualmente",technician:"Inserito dal tecnico"};
+function quoteCard(l){
+  const a=appts.find(x=>x.lead_id===l.id);
+  let buttons="<button class=\"btn ghost\" data-open=\""+l.id+"\">Apri cliente</button>";
+  if(a) buttons+="<button class=\"btn blue\" data-measures=\""+a.id+"\">Vedi misure</button>";
+  if(l.quote_status==="to_prepare") buttons+="<button class=\"btn ok\" data-quote-sent=\""+l.id+"\">Segna inviato</button>";
+  if(l.quote_status==="sent") buttons+="<button class=\"btn ok\" data-quote-accepted=\""+l.id+"\">Accettato</button><button class=\"btn ghost\" data-quote-declined=\""+l.id+"\">Non accettato</button>";
+  const rilievo=a ? "<div class=\"outcome-box\"><b>Rilievo</b>"+esc(a.technician_name||"Tecnico")+" · "+(a.starts_at?fmt(a.starts_at):"")+(a.outcome_notes?" · "+esc(a.outcome_notes):"")+"</div>" : "";
+  return "<div class=\"card\"><div class=\"name\">"+esc(l.full_name)+"</div><div class=\"meta\">"+esc(originLabel[l.origin_type]||"Cliente")+" · "+esc(l.source||"")+"</div><div class=\"meta\">"+esc([l.city,l.province].filter(Boolean).join(" "))+"</div><div style=\"margin-top:6px\">"+esc(l.request||"")+"</div>"+rilievo+"<div class=\"row\" style=\"margin-top:10px\">"+buttons+"</div></div>";
+}
+function quoteCards(xs){ return xs.length?xs.map(quoteCard).join(""):"<div class=\"card\">Nessun cliente in questa sezione.</div>"; }
+async function setQuoteStatus(id,status){
+  const patch={quote_status:status,updated_at:now()};
+  if(status==="sent") patch.quote_sent_at=now();
+  const {error}=await sb.from("leads").update(patch).eq("id",id);
+  if(error) return alert(error.message);
+  await load(); view="quotes"; render();
+}
+function bindQuoteActions(){
+  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
+  document.querySelectorAll("[data-measures]").forEach(b=>b.onclick=()=>measurementsView(b.dataset.measures));
+  document.querySelectorAll("[data-quote-sent]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteSent,"sent"));
+  document.querySelectorAll("[data-quote-accepted]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteAccepted,"accepted"));
+  document.querySelectorAll("[data-quote-declined]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteDeclined,"declined"));
+}
+function quotesView(){
+  const todo=leads.filter(l=>l.quote_status==="to_prepare");
+  const sent=leads.filter(l=>l.quote_status==="sent");
+  const closed=leads.filter(l=>["accepted","declined"].includes(l.quote_status));
+  shell("<div class=\"section\">Preventivi da fare</div><div class=\"notice\">Il cliente entra qui automaticamente quando il tecnico salva il rilievo.</div>"+quoteCards(todo)+"<div class=\"section\">Preventivi inviati</div>"+quoteCards(sent)+"<div class=\"section\">Chiusi</div>"+quoteCards(closed));
+  bindQuoteActions();
+}
 function home(){
   const today=appts.filter(a=>day(a.starts_at)===day(now())&&a.status!=="cancelled").length;
   const dueCallbacks=leads.filter(l=>l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date()));
@@ -364,7 +397,7 @@ function home(){
       <div class="card stat"><b>${leads.filter(l=>l.status==="new").length}</b><span>Nuovi lead</span></div>
       <div class="card stat"><b>${dueCallbacks.length}</b><span>Da richiamare</span></div>
       <div class="card stat"><b>${today}</b><span>Sopralluoghi oggi</span></div>
-      <div class="card stat"><b>${leads.filter(l=>["valid","appointment","won"].includes(l.status)).length}</b><span>Qualificati</span></div>
+      <div class="card stat"><b>${leads.filter(l=>l.quote_status==="to_prepare").length}</b><span>Preventivi da fare</span></div>
     </div>
     <div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
     ${dueCallbacks.length?`<div class="section">Richiami da fare</div>${leadCards(dueCallbacks.slice(0,5))}`:""}
@@ -383,7 +416,7 @@ function leadCards(xs=leads){
     return `
     <div class="card ${due?"callback-due":""}">
       <div class="name">${esc(l.full_name)}</div>
-      <div class="meta">${esc(l.city||"")} ${esc(l.province||"")} · ${esc(l.source||"")} · ${esc(label[l.status]||l.status)}</div>
+      <div class="meta">${esc(originLabel[l.origin_type]||"Cliente")} · ${esc(l.source||"")} · ${esc(label[l.status]||l.status)}</div><div class="meta">${esc(l.city||"")} ${esc(l.province||"")}</div>
       ${due?`<div class="callback-badge">☎ RICHIAMARE ORA${l.callback_at?" · "+fmt(l.callback_at):""}</div>`:""}
       <div style="margin-top:6px">${esc(l.request||"")}</div>
       <div class="row" style="margin-top:10px">
@@ -395,34 +428,14 @@ function leadCards(xs=leads){
 }
 
 function leadsView(){
-  shell(`
-    <div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
-    <div class="section">Lead</div>
-    <div class="lead-tools">
-      <input id="leadSearch" placeholder="Cerca nome, telefono, comune...">
-      <select id="leadFilter">
-        <option value="">Tutti gli stati</option>
-        ${Object.entries(label).map(([v,n])=>`<option value="${v}">${esc(n)}</option>`).join("")}
-      </select>
-    </div>
-    <div id="leadList">${leadCards()}</div>
-  `);
+  const digital=leads.filter(l=>l.origin_type==="digital");
+  const manual=leads.filter(l=>l.origin_type==="manual"||!l.origin_type);
+  const technician=leads.filter(l=>l.origin_type==="technician");
+  shell("<div class=\"row\"><button class=\"btn primary\" id=\"newLead\">+ Nuovo cliente</button></div>"+
+    "<div class=\"section\">Lead online</div><div class=\"notice\">Contatti da Meta, Google e sito.</div>"+leadCards(digital)+
+    "<div class=\"section\">Inseriti manualmente</div>"+leadCards(manual)+
+    "<div class=\"section\">Inseriti dal tecnico</div><div class=\"notice\">Quando il tecnico salva le misure, questi clienti passano automaticamente in Preventivi.</div>"+leadCards(technician));
   document.querySelector("#newLead").onclick=()=>leadForm();
-  const search=document.querySelector("#leadSearch");
-  const filter=document.querySelector("#leadFilter");
-  const list=document.querySelector("#leadList");
-  const refresh=()=>{
-    const q=search.value.trim().toLowerCase();
-    const st=filter.value;
-    const xs=leads.filter(l=>{
-      const hay=[l.full_name,l.phone,l.email,l.city,l.province,l.request,l.source].filter(Boolean).join(" ").toLowerCase();
-      return (!q||hay.includes(q)) && (!st||l.status===st);
-    });
-    list.innerHTML=leadCards(xs);
-    list.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
-  };
-  search.oninput=refresh;
-  filter.onchange=refresh;
   document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
 }
 
@@ -446,6 +459,7 @@ function leadForm(){
     e.preventDefault();
     const x=Object.fromEntries(new FormData(e.currentTarget).entries());
     x.windows_count=x.windows_count?Number(x.windows_count):null;
+    x.origin_type=["Meta Ads","Google Ads","Sito"].includes(x.source)?"digital":"manual";
     x.created_by=user.id;
     const {error}=await sb.from("leads").insert(x);
     if(error) return alert(error.message);
@@ -458,7 +472,7 @@ function leadDetail(id){
   shell(`
     <div class="card">
       <div class="name">${esc(l.full_name)}</div>
-      <div class="meta">${esc(l.source)} · ${fmt(l.created_at)}</div>
+      <div class="meta">${esc(originLabel[l.origin_type]||"Cliente")} · ${esc(l.source)} · ${fmt(l.created_at)}</div>
       <p><b>${esc(l.phone||"")}</b><br>${esc(l.email||"")}<br>${esc([l.address,l.city,l.province].filter(Boolean).join(", "))}</p>
       <p>${esc(l.request||"")}</p>
       <span class="pill">${esc(label[l.status]||l.status)}</span>
@@ -582,6 +596,7 @@ function technicianNewClient(){
     const x=Object.fromEntries(new FormData(e.currentTarget).entries());
     const leadPayload={
       source:"Passaparola",
+      origin_type:"technician",
       status:"appointment",
       full_name:x.full_name.trim(),
       phone:x.phone.trim(),
@@ -940,7 +955,8 @@ async function measurementsView(appointmentId,sessionId=null){
   document.querySelector("#saveSurvey").onclick=async()=>{
     const {error}=await sb.rpc("save_measurement_session",{p_session_id:current.id});
     if(error) return alert(error.message.includes("NESSUNA_MISURA")?"Inserisci almeno una posizione prima di salvare.":error.message);
-    alert(current.session_type==="definitive"?"Misure definitive salvate: ora sono il riferimento corretto.":"Prime misure salvate.");
+    alert(current.session_type==="definitive"?"Misure definitive salvate. Cliente spostato in Preventivi da fare.":"Rilievo salvato. Cliente spostato in Preventivi da fare.");
+    await load();
     measurementsView(appointmentId,current.id);
   };
 }
