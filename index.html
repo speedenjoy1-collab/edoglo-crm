@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v14">
+  <meta name="edoglo-build" content="2026-11-03-v15">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -520,7 +520,15 @@ function apptCards(xs){
 function agenda(){
   if(profile.role==="technician"){
     const xs=appts.filter(a=>new Date(a.ends_at)>=new Date(Date.now()-86400000)&&!["cancelled","completed"].includes(a.status));
-    shell(`<div class="section">Agenda sopralluoghi</div>${apptCards(xs)}`);
+    shell(`
+      <div class="row" style="margin-bottom:12px">
+        <button class="btn primary" id="techNewClient">+ Nuovo cliente</button>
+      </div>
+      <div class="notice">Cliente nuovo trovato durante un sopralluogo? Crealo qui e inserisci subito le misure.</div>
+      <div class="section">Agenda sopralluoghi</div>
+      ${apptCards(xs)}
+    `);
+    document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
   }else{
     shell(`
       <div class="section">Agenda sopralluoghi</div>
@@ -559,6 +567,92 @@ function bindAgendaActions(){
   document.querySelectorAll("[data-measures]").forEach(b=>b.onclick=()=>measurementsView(b.dataset.measures));
 }
 
+
+
+function nextFreeTechnicianSlot(){
+  let start=new Date();
+  start.setSeconds(0,0);
+  let end=new Date(start.getTime()+30*60000);
+  const own=appts
+    .filter(a=>a.technician_id===user.id && a.status!=="cancelled")
+    .sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+  let moved=true;
+  while(moved){
+    moved=false;
+    for(const a of own){
+      const as=new Date(a.starts_at), ae=new Date(a.ends_at);
+      if(start<ae && end>as){
+        start=new Date(ae);
+        end=new Date(start.getTime()+30*60000);
+        moved=true;
+        break;
+      }
+    }
+  }
+  return {start,end};
+}
+
+function technicianNewClient(){
+  const slot=nextFreeTechnicianSlot();
+  shell(`
+    <div class="section">Nuovo cliente</div>
+    <div class="notice">Inserisci i dati essenziali. Al salvataggio si aprirà subito la scheda per il rilievo misure.</div>
+    <form id="techClientForm" class="card">
+      <div class="field"><label>Nome e cognome</label><input name="full_name" required></div>
+      <div class="field"><label>Telefono</label><input name="phone" type="tel" required></div>
+      <div class="field"><label>Email</label><input name="email" type="email"></div>
+      <div class="field"><label>Indirizzo</label><input name="address" required></div>
+      <div class="field"><label>Comune</label><input name="city"></div>
+      <div class="field"><label>Provincia</label><input name="province" maxlength="2"></div>
+      <div class="field"><label>Richiesta</label><textarea name="request" placeholder="Es. infissi, tapparelle, zanzariere, porta..."></textarea></div>
+      <button class="btn primary">Crea cliente e inserisci misure</button>
+    </form>
+  `);
+
+  document.querySelector("#techClientForm").onsubmit=async e=>{
+    e.preventDefault();
+    const x=Object.fromEntries(new FormData(e.currentTarget).entries());
+    const leadPayload={
+      source:"Passaparola",
+      status:"appointment",
+      full_name:x.full_name.trim(),
+      phone:x.phone.trim(),
+      email:x.email?.trim()||null,
+      address:x.address.trim(),
+      city:x.city?.trim()||null,
+      province:x.province?.trim().toUpperCase()||null,
+      request:x.request?.trim()||null,
+      assigned_to:user.id,
+      created_by:user.id
+    };
+    const {data:lead,error:leadErr}=await sb.from("leads").insert(leadPayload).select("id").single();
+    if(leadErr) return alert(leadErr.message);
+
+    const apptPayload={
+      lead_id:lead.id,
+      technician_id:user.id,
+      starts_at:slot.start.toISOString(),
+      ends_at:slot.end.toISOString(),
+      status:"confirmed",
+      address:leadPayload.address,
+      city:leadPayload.city,
+      province:leadPayload.province,
+      client_name:leadPayload.full_name,
+      phone:leadPayload.phone,
+      technician_name:profile.full_name||"Antonio",
+      notes:leadPayload.request,
+      source:"Nuovo cliente tecnico",
+      created_by:user.id
+    };
+    const {data:appt,error:apptErr}=await sb.from("appointments").insert(apptPayload).select("id").single();
+    if(apptErr){
+      await sb.from("leads").update({status:"new"}).eq("id",lead.id);
+      return alert(apptErr.code==="23P01"?"Cliente creato, ma non ho potuto generare automaticamente il sopralluogo per un conflitto di orario.":"Cliente creato, ma il sopralluogo non è stato generato: "+apptErr.message);
+    }
+    await load();
+    measurementsView(appt.id);
+  };
+}
 
 async function measurementsView(appointmentId,sessionId=null){
   const a=appts.find(x=>x.id===appointmentId);
