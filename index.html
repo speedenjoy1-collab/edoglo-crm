@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v18">
+  <meta name="edoglo-build" content="2026-11-03-v19">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -361,7 +361,7 @@ const originLabel={digital:"Lead online",manual:"Inserito manualmente",technicia
 function quoteCard(l){
   const a=appts.find(x=>x.lead_id===l.id);
   let buttons="<button class=\"btn ghost\" data-open=\""+l.id+"\">Apri cliente</button>";
-  if(a) buttons+="<button class=\"btn blue\" data-measures=\""+a.id+"\">Vedi misure</button>";
+  if(a) buttons+="<button class=\"btn blue\" data-quote-detail=\""+l.id+"\">Apri scheda rilievo</button>";
   if(l.quote_status==="to_prepare") buttons+="<button class=\"btn ok\" data-quote-sent=\""+l.id+"\">Segna inviato</button>";
   if(l.quote_status==="sent") buttons+="<button class=\"btn ok\" data-quote-accepted=\""+l.id+"\">Accettato</button><button class=\"btn ghost\" data-quote-declined=\""+l.id+"\">Non accettato</button>";
   const rilievo=a ? "<div class=\"outcome-box\"><b>Rilievo</b>"+esc(a.technician_name||"Tecnico")+" · "+(a.starts_at?fmt(a.starts_at):"")+(a.outcome_notes?" · "+esc(a.outcome_notes):"")+"</div>" : "";
@@ -377,10 +377,52 @@ async function setQuoteStatus(id,status){
 }
 function bindQuoteActions(){
   document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
-  document.querySelectorAll("[data-measures]").forEach(b=>b.onclick=()=>measurementsView(b.dataset.measures));
+  document.querySelectorAll("[data-quote-detail]").forEach(b=>b.onclick=()=>quoteDetail(b.dataset.quoteDetail));
   document.querySelectorAll("[data-quote-sent]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteSent,"sent"));
   document.querySelectorAll("[data-quote-accepted]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteAccepted,"accepted"));
   document.querySelectorAll("[data-quote-declined]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteDeclined,"declined"));
+}
+function measurementSummaryCard(r,i){
+  const lines=[];
+  if(r.opening_type) lines.push("<b>Tipologia:</b> "+esc(r.opening_type));
+  if(r.profile) lines.push("<b>Profilo:</b> "+esc(r.profile));
+  if(r.product_color||r.frame_color) lines.push("<b>Colore:</b> "+esc(r.product_color||r.frame_color));
+  if(r.glass_spec) lines.push("<b>Vetro:</b> "+esc(r.glass_spec));
+  if(r.handle_color) lines.push("<b>Maniglia:</b> "+esc(r.handle_color));
+  if(r.opening_direction) lines.push("<b>Apertura:</b> "+esc(r.opening_direction));
+  if(r.roller_shutter) lines.push("<b>Tapparella:</b> "+esc(r.roller_shutter));
+  if(r.roller_shutter_control) lines.push("<b>Comando:</b> "+esc(r.roller_shutter_control));
+  if(r.roller_shutter_color) lines.push("<b>Colore tapparella:</b> "+esc(r.roller_shutter_color));
+  if(r.mosquito_net) lines.push("<b>Zanzariera:</b> "+esc(r.mosquito_net));
+  if(r.persiana) lines.push("<b>Persiana:</b> "+esc(r.persiana));
+  if(r.cassonetto) lines.push("<b>Cassonetto:</b> "+esc(r.cassonetto));
+  if(r.monoblocco) lines.push("<b>Monoblocco:</b> "+esc(r.monoblocco));
+  if(r.product_detail) lines.push("<b>Dettaglio:</b> "+esc(r.product_detail));
+  if(r.sill) lines.push("<b>Soglia:</b> "+esc(r.sill));
+  if(r.installation_type) lines.push("<b>Posa:</b> "+esc(r.installation_type));
+  if(r.wall_thickness_mm) lines.push("<b>Spessore muro:</b> "+r.wall_thickness_mm+" mm");
+  return "<div class=\"measure-card\"><div class=\"position-head\"><div><div class=\"name\">"+esc(r.position_name||("Pos. "+(i+1)))+" · "+esc(r.product_type||"Rilievo")+"</div><div class=\"meta\">"+esc(r.room||"Ambiente non indicato")+"</div></div><div class=\"position-number\">"+(i+1)+"</div></div><div class=\"measure-value\">"+(r.width_mm||"—")+" × "+(r.height_mm||"—")+" mm · Q.tà "+(r.quantity||1)+"</div>"+(lines.length?"<div class=\"outcome-box\">"+lines.join("<br>")+"</div>":"")+(r.notes?"<div class=\"outcome-box\"><b>Note tecniche</b>"+esc(r.notes)+"</div>":"")+"</div>";
+}
+async function quoteDetail(leadId){
+  const l=leads.find(x=>x.id===leadId);
+  if(!l) return;
+  const a=appts.find(x=>x.lead_id===leadId);
+  if(!a) return alert("Nessun rilievo collegato a questo cliente.");
+  const {data:sessions,error:se}=await sb.from("measurement_sessions").select("*").eq("appointment_id",a.id).order("visit_number",{ascending:false});
+  if(se) return alert(se.message);
+  const ref=sessions.find(s=>s.is_reference)||sessions.find(s=>s.status==="saved")||sessions[0];
+  if(!ref) return alert("Nessun rilievo disponibile.");
+  const {data:rows,error}=await sb.from("appointment_measurements").select("*").eq("session_id",ref.id).order("created_at",{ascending:true});
+  if(error) return alert(error.message);
+  shell("<div class=\"section\">Scheda rilievo / preventivo</div>"+
+    "<div class=\"card\"><div class=\"name\">"+esc(l.full_name)+"</div><div class=\"meta\">"+esc([l.address,l.city,l.province].filter(Boolean).join(", "))+"</div><div class=\"meta\">"+esc(l.phone||"")+(l.email?" · "+esc(l.email):"")+"</div>"+(l.request?"<div class=\"outcome-box\"><b>Richiesta cliente</b>"+esc(l.request)+"</div>":"")+"</div>"+
+    "<div class=\"card\"><div class=\"name\">Rilievo tecnico</div><div class=\"meta\">Tecnico: "+esc(a.technician_name||"Antonio")+" · "+(a.starts_at?fmt(a.starts_at):"")+"</div>"+(a.outcome_notes?"<div class=\"outcome-box\"><b>Esito / note tecnico</b>"+esc(a.outcome_notes)+"</div>":"")+"</div>"+
+    "<div class=\"section\">Posizioni rilevate</div>"+(rows&&rows.length?rows.map(measurementSummaryCard).join(""):"<div class=\"card\">Nessuna posizione salvata.</div>")+
+    "<div class=\"row\" style=\"margin-top:14px\"><button class=\"btn ghost\" id=\"backQuotes\">← Preventivi</button><button class=\"btn primary\" id=\"editMeasures\">Modifica / aggiungi al rilievo</button>"+(l.quote_status==="to_prepare"?"<button class=\"btn ok\" id=\"markSent\">Segna preventivo inviato</button>":"")+"</div>");
+  document.querySelector("#backQuotes").onclick=()=>{view="quotes";render();};
+  document.querySelector("#editMeasures").onclick=()=>measurementsView(a.id,ref.id);
+  const sent=document.querySelector("#markSent");
+  if(sent) sent.onclick=()=>setQuoteStatus(l.id,"sent");
 }
 function quotesView(){
   const todo=leads.filter(l=>l.quote_status==="to_prepare");
