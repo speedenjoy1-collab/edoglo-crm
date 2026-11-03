@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <title>Edoglò CRM</title>
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#111827;background:#f8fafc}
+    *{box-sizing:border-box}
+    body{margin:0;background:#f8fafc}
+    button,input,select,textarea{font:inherit}
+    .wrap{max-width:860px;margin:auto;padding:16px 16px 92px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;background:#f8fafcee;backdrop-filter:blur(8px);padding:12px 0;z-index:5}
+    h1{font-size:22px;margin:0}.sub{color:#64748b;font-size:13px}
+    .grid{display:grid;gap:12px}.stats{grid-template-columns:repeat(2,1fr)}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 1px 2px #0f172a0a}
+    .stat b{font-size:25px;display:block}
+    .btn{border:0;border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer;background:#e2e8f0;color:#111827;text-decoration:none;display:inline-block}
+    .primary{background:#111827;color:#fff}.ok{background:#dcfce7;color:#166534}.warn{background:#fef3c7;color:#92400e}.bad{background:#fee2e2;color:#991b1b}.blue{background:#dbeafe;color:#1d4ed8}.ghost{background:#fff;border:1px solid #e2e8f0}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .field{display:grid;gap:5px;margin:9px 0}.field label{font-weight:700;font-size:13px}
+    .field input,.field select,.field textarea{width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:11px;background:#fff}.field textarea{min-height:80px}
+    .tabs{display:flex;gap:6px;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;padding:8px;justify-content:center;z-index:10}
+    .tab{border:0;background:#fff;padding:10px;border-radius:10px;font-weight:700;color:#64748b}.tab.active{background:#f1f5f9;color:#111827}
+    .pill{display:inline-block;border-radius:999px;padding:4px 8px;background:#f1f5f9;font-size:12px;font-weight:700}
+    .meta{color:#64748b;font-size:13px}.name{font-size:17px;font-weight:800}.section{font-size:18px;font-weight:800;margin:18px 0 6px}
+    .login{max-width:420px;margin:10vh auto;padding:18px}.msg{margin:10px 0;padding:10px;border-radius:12px}.error{background:#fee2e2;color:#991b1b}.success{background:#dcfce7;color:#166534}
+    .notice{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:12px;border-radius:14px;margin:10px 0}
+    .appt{border-left:4px solid #c4b5fd}.today{border-left-color:#22c55e}
+    .slot{display:inline-block;padding:6px 8px;border-radius:9px;margin:3px;background:#dcfce7;font-size:12px}.slot.busy{background:#f1f5f9;color:#94a3b8;text-decoration:line-through}
+    @media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const sb=createClient(
+  "https://erapqwuizpdccnrtzwns.supabase.co",
+  "sb_publishable_6wz50wCBm44-DufMKB2dAQ_tmcflhkw",
+  {auth:{persistSession:true}}
+);
+
+const app=document.querySelector("#app");
+let user=null, profile=null, leads=[], appts=[], techs=[], view="home";
+
+const esc=v=>String(v??"").replace(/[&<>'"]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[s]));
+const digits=v=>String(v||"").replace(/[^0-9]/g,"");
+const fmt=x=>new Intl.DateTimeFormat("it-IT",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x));
+const day=x=>new Intl.DateTimeFormat("sv-SE",{year:"numeric",month:"2-digit",day:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x));
+const now=()=>new Date().toISOString();
+
+const label={
+  new:"Nuovo",
+  valid:"Valido",
+  bot:"Bot/Falso",
+  out_of_area:"Fuori zona",
+  no_answer:"Non risponde",
+  callback:"Da richiamare",
+  not_interested:"Non interessato",
+  appointment:"Sopralluogo fissato",
+  won:"Acquisito",
+  lost:"Perso"
+};
+
+async function start(){
+  const {data:{user:u}}=await sb.auth.getUser();
+  user=u;
+  if(!user){ login(); return; }
+  const {data:p}=await sb.from("staff_profiles").select("*").eq("id",user.id).maybeSingle();
+  if(!p){ unauthorized(); return; }
+  profile=p;
+  await load();
+  render();
+}
+
+function login(){
+  app.innerHTML=`
+  <div class="login">
+    <h1>Edoglò CRM</h1>
+    <p class="sub">Accesso riservato</p>
+    <div id="m"></div>
+    <div class="field"><label>Email</label><input id="email" type="email"></div>
+    <div class="field"><label>Password</label><input id="pw" type="password" minlength="8"></div>
+    <div class="row">
+      <button class="btn primary" id="go">Accedi</button>
+      <button class="btn ghost" id="signup">Primo accesso</button>
+    </div>
+    <div class="notice">Il primo account creato nel CRM diventa amministratore. Crealo tu prima dell'accesso di Antonio.</div>
+  </div>`;
+
+  go.onclick=async()=>{
+    const {error}=await sb.auth.signInWithPassword({email:email.value.trim(),password:pw.value});
+    m.innerHTML=error?`<div class="msg error">${esc(error.message)}</div>`:`<div class="msg success">Accesso eseguito</div>`;
+    if(!error) location.reload();
+  };
+
+  signup.onclick=async()=>{
+    if(!email.value || pw.value.length<8){
+      m.innerHTML='<div class="msg error">Inserisci email e password di almeno 8 caratteri.</div>';
+      return;
+    }
+    const {error}=await sb.auth.signUp({
+      email:email.value.trim(),
+      password:pw.value,
+      options:{data:{full_name:email.value.split("@")[0]}}
+    });
+    m.innerHTML=error?`<div class="msg error">${esc(error.message)}</div>`:`<div class="msg success">Account creato. Se ricevi una mail, confermala e poi accedi.</div>`;
+  };
+}
+
+function unauthorized(){
+  app.innerHTML=`
+  <div class="login">
+    <h1>Edoglò CRM</h1>
+    <div class="notice">Account creato ma non ancora autorizzato nel CRM.</div>
+    <button class="btn ghost" id="out">Esci</button>
+  </div>`;
+  out.onclick=async()=>{await sb.auth.signOut();location.reload();};
+}
+
+async function load(){
+  const [l,a]=await Promise.all([
+    sb.from("leads").select("*").order("created_at",{ascending:false}),
+    sb.from("appointments").select("*").order("starts_at",{ascending:true})
+  ]);
+  if(l.error) throw l.error;
+  if(a.error) throw a.error;
+  leads=l.data||[];
+  appts=a.data||[];
+
+  if(profile.role==="admin"){
+    const t=await sb.from("staff_profiles")
+      .select("id,full_name,email,role,active")
+      .eq("role","technician")
+      .eq("active",true)
+      .order("full_name");
+    techs=t.data||[];
+  }
+}
+
+function nav(){
+  const items=profile.role==="admin"
+    ? [["home","Home"],["leads","Lead"],["agenda","Agenda"],["staff","Tecnici"]]
+    : [["agenda","Oggi"],["availability","Agenda"]];
+  return `<div class="tabs">${items.map(([v,n])=>`<button class="tab ${view===v?"active":""}" data-v="${v}">${n}</button>`).join("")}</div>`;
+}
+
+function shell(body){
+  app.innerHTML=`
+  <div class="wrap">
+    <div class="top">
+      <div><h1>Edoglò CRM</h1><div class="sub">${profile.role==="admin"?"Lead e sopralluoghi":"Agenda tecnico"}</div></div>
+      <button class="btn ghost" id="logout">Esci</button>
+    </div>
+    ${body}
+  </div>
+  ${nav()}`;
+  logout.onclick=async()=>{await sb.auth.signOut();location.reload();};
+  document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
+}
+
+function render(){
+  if(profile.role==="technician" && view==="home") view="agenda";
+  ({home,leadsView,agenda,availability,staff}[view]||home)();
+}
+
+function home(){
+  const today=appts.filter(a=>day(a.starts_at)===day(now())&&a.status!=="cancelled").length;
+  const callbacks=leads.filter(l=>l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date())).length;
+  shell(`
+    <div class="grid stats">
+      <div class="card stat"><b>${leads.filter(l=>l.status==="new").length}</b><span>Nuovi lead</span></div>
+      <div class="card stat"><b>${callbacks}</b><span>Da richiamare</span></div>
+      <div class="card stat"><b>${today}</b><span>Sopralluoghi oggi</span></div>
+      <div class="card stat"><b>${leads.filter(l=>["valid","appointment","won"].includes(l.status)).length}</b><span>Qualificati</span></div>
+    </div>
+    <div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
+    <div class="section">Prossimi sopralluoghi</div>
+    ${apptCards(appts.filter(a=>new Date(a.ends_at)>=new Date()&&a.status!=="cancelled").slice(0,6))}
+    <div class="section">Disponibilità prossimi 7 giorni</div>
+    ${availabilityHtml()}
+  `);
+  newLead.onclick=()=>leadForm();
+}
+
+function leadCards(){
+  return leads.map(l=>`
+    <div class="card">
+      <div class="name">${esc(l.full_name)}</div>
+      <div class="meta">${esc(l.city||"")} ${esc(l.province||"")} · ${esc(l.source||"")} · ${esc(label[l.status]||l.status)}</div>
+      <div>${esc(l.request||"")}</div>
+      <div class="row" style="margin-top:10px">
+        <a class="btn blue" href="tel:${esc(l.phone||"")}">Chiama</a>
+        <a class="btn ok" target="_blank" href="https://wa.me/${digits(l.phone)}">WhatsApp</a>
+        <button class="btn ghost" data-open="${l.id}">Apri</button>
+      </div>
+    </div>`).join("") || '<div class="card">Nessun lead</div>';
+}
+
+function leadsView(){
+  shell(`<div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div><div class="section">Lead</div>${leadCards()}`);
+  newLead.onclick=()=>leadForm();
+  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
+}
+
+function leadForm(){
+  shell(`
+    <div class="section">Nuovo cliente / lead</div>
+    <form id="f" class="card">
+      <div class="field"><label>Provenienza</label><select name="source"><option>Meta Ads</option><option>Google Ads</option><option>Sito</option><option>WhatsApp</option><option>Telefonata</option><option>Showroom</option><option>Passaparola</option><option>Altro</option></select></div>
+      <div class="field"><label>Nome e cognome</label><input name="full_name" required></div>
+      <div class="field"><label>Telefono</label><input name="phone" type="tel"></div>
+      <div class="field"><label>Email</label><input name="email" type="email"></div>
+      <div class="field"><label>Indirizzo</label><input name="address"></div>
+      <div class="field"><label>Comune</label><input name="city"></div>
+      <div class="field"><label>Provincia</label><input name="province" maxlength="2"></div>
+      <div class="field"><label>N. infissi</label><input name="windows_count" type="number"></div>
+      <div class="field"><label>Richiesta</label><textarea name="request"></textarea></div>
+      <button class="btn primary">Salva</button>
+    </form>`);
+
+  f.onsubmit=async e=>{
+    e.preventDefault();
+    const x=Object.fromEntries(new FormData(f).entries());
+    x.windows_count=x.windows_count?Number(x.windows_count):null;
+    x.created_by=user.id;
+    const {error}=await sb.from("leads").insert(x);
+    if(error) return alert(error.message);
+    await load(); view="leads"; render();
+  };
+}
+
+function leadDetail(id){
+  const l=leads.find(x=>x.id===id);
+  shell(`
+    <div class="card">
+      <div class="name">${esc(l.full_name)}</div>
+      <div class="meta">${esc(l.source)} · ${fmt(l.created_at)}</div>
+      <p><b>${esc(l.phone||"")}</b><br>${esc(l.email||"")}<br>${esc([l.address,l.city,l.province].filter(Boolean).join(", "))}</p>
+      <p>${esc(l.request||"")}</p>
+      <span class="pill">${esc(label[l.status]||l.status)}</span>
+    </div>
+    <div class="row">
+      <a class="btn blue" href="tel:${esc(l.phone||"")}">Chiama</a>
+      <a class="btn ok" target="_blank" href="https://wa.me/${digits(l.phone)}">WhatsApp</a>
+      <button class="btn primary" id="schedule">Fissa sopralluogo</button>
+    </div>
+    <div class="section">Esito chiamata</div>
+    <div class="row">
+      ${[
+        ["valid","Valido","ok"],["bot","Bot/Falso","bad"],["out_of_area","Fuori zona","bad"],
+        ["no_answer","Non risponde","warn"],["callback","Da richiamare","warn"],["not_interested","Non interessato","ghost"]
+      ].map(([s,n,c])=>`<button class="btn ${c}" data-s="${s}">${n}</button>`).join("")}
+    </div>
+  `);
+
+  schedule.onclick=()=>apptForm(l);
+
+  document.querySelectorAll("[data-s]").forEach(b=>b.onclick=async()=>{
+    let p={status:b.dataset.s};
+    if(b.dataset.s==="callback"){
+      const w=prompt("Quando richiamare? Es. 2026-11-04 15:00");
+      if(w) p.callback_at=new Date(w.replace(" ","T")).toISOString();
+    }
+    const {error}=await sb.from("leads").update(p).eq("id",id);
+    if(error) return alert(error.message);
+    await load(); view="leads"; render();
+  });
+}
+
+function apptCards(xs){
+  return xs.map(a=>`
+    <div class="card appt ${day(a.starts_at)===day(now())?"today":""}">
+      <div class="name">${esc(a.client_name||"Cliente")}</div>
+      <div class="meta">${fmt(a.starts_at)} · ${esc(a.technician_name||"Antonio")}</div>
+      <div><b>${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</b></div>
+      <div class="meta">${esc(a.notes||"")}</div>
+      <div class="row" style="margin-top:10px">
+        <a class="btn blue" href="tel:${esc(a.phone||"")}">Chiama</a>
+        <a class="btn ok" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a>
+        ${profile.role==="technician"
+          ? `<button class="btn ok" data-done="${a.id}">Eseguito</button>`
+          : `<button class="btn bad" data-cancel="${a.id}">Annulla</button>`}
+      </div>
+    </div>`).join("") || '<div class="card">Nessun sopralluogo</div>';
+}
+
+function agenda(){
+  const xs=appts.filter(a=>new Date(a.ends_at)>=new Date(Date.now()-86400000)&&a.status!=="cancelled");
+  shell(`<div class="section">Agenda sopralluoghi</div>${apptCards(xs)}`);
+  document.querySelectorAll("[data-done]").forEach(b=>b.onclick=()=>setAppt(b.dataset.done,"completed"));
+  document.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>setAppt(b.dataset.cancel,"cancelled"));
+}
+
+async function setAppt(id,status){
+  const {error}=await sb.from("appointments").update({status}).eq("id",id);
+  if(error) return alert(error.message);
+  await load(); render();
+}
+
+function apptForm(l){
+  if(!techs.length){
+    alert("Prima Antonio deve creare il proprio account usando la mail autorizzata.");
+    return;
+  }
+
+  const st=new Date(Date.now()+86400000); st.setHours(9,0,0,0);
+  const en=new Date(st.getTime()+3600000);
+
+  shell(`
+    <div class="section">Fissa sopralluogo</div>
+    <form id="af" class="card">
+      <input type="hidden" name="lead_id" value="${esc(l.id)}">
+      <div class="field"><label>Tecnico</label><select name="technician_id">${techs.map(t=>`<option value="${t.id}">${esc(t.full_name)}</option>`).join("")}</select></div>
+      <div class="field"><label>Cliente</label><input name="client_name" value="${esc(l.full_name)}" required></div>
+      <div class="field"><label>Telefono</label><input name="phone" value="${esc(l.phone||"")}"></div>
+      <div class="field"><label>Indirizzo</label><input name="address" value="${esc(l.address||"")}" required></div>
+      <div class="field"><label>Comune</label><input name="city" value="${esc(l.city||"")}"></div>
+      <div class="field"><label>Provincia</label><input name="province" value="${esc(l.province||"")}"></div>
+      <div class="field"><label>Inizio</label><input name="starts_at" type="datetime-local" value="${local(st)}" required></div>
+      <div class="field"><label>Fine</label><input name="ends_at" type="datetime-local" value="${local(en)}" required></div>
+      <div class="field"><label>Note per Antonio</label><textarea name="notes">${esc(l.request||"")}</textarea></div>
+      <button class="btn primary">Conferma sopralluogo</button>
+    </form>`);
+
+  af.onsubmit=async e=>{
+    e.preventDefault();
+    const x=Object.fromEntries(new FormData(af).entries());
+    const t=techs.find(t=>t.id===x.technician_id);
+    x.technician_name=t?.full_name||"Antonio";
+    x.starts_at=new Date(x.starts_at).toISOString();
+    x.ends_at=new Date(x.ends_at).toISOString();
+    x.status="confirmed";
+    x.source="Lead";
+    x.created_by=user.id;
+
+    const {error}=await sb.from("appointments").insert(x);
+    if(error) return alert(error.code==="23P01"?"Questo orario è già occupato.":error.message);
+
+    await sb.from("leads").update({status:"appointment"}).eq("id",l.id);
+    await load(); view="agenda"; render();
+  };
+}
+
+function local(d){
+  const z=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;
+}
+
+function availabilityHtml(){
+  let out="";
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()+i); d.setHours(0,0,0,0);
+    let slots=[];
+    for(let h=9;h<18;h++){
+      const s=new Date(d); s.setHours(h,0,0,0);
+      const e=new Date(s.getTime()+3600000);
+      const busy=appts.some(a=>a.status!=="cancelled"&&new Date(a.starts_at)<e&&new Date(a.ends_at)>s);
+      slots.push(`<span class="slot ${busy?"busy":""}">${String(h).padStart(2,"0")}:00</span>`);
+    }
+    out+=`<div class="card"><b>${new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"2-digit",month:"2-digit"}).format(d)}</b><div style="margin-top:7px">${slots.join("")}</div></div>`;
+  }
+  return out;
+}
+
+function availability(){
+  shell(`<div class="section">Disponibilità prossimi 7 giorni</div>${availabilityHtml()}`);
+}
+
+function staff(){
+  shell(`
+    <div class="section">Tecnici attivi</div>
+    ${techs.map(t=>`<div class="card"><div class="name">${esc(t.full_name)}</div><div class="meta">${esc(t.email)}</div></div>`).join("") || '<div class="card">Antonio non ha ancora creato il suo account.</div>'}
+    <div class="notice">Antonio è già autorizzato con l'email <b>antonio.l@speedenjoy.it</b>. Deve aprire il CRM e usare “Primo accesso”.</div>
+  `);
+}
+
+start().catch(e=>{
+  app.innerHTML=`<div class="login"><div class="msg error">${esc(e.message)}</div></div>`;
+});
+</script>
+</body>
+</html>
