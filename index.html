@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v15">
+  <meta name="edoglo-build" content="2026-11-03-v16">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -500,7 +500,7 @@ function apptCards(xs){
         <div class="appt-date-main">${fmtDate(a.starts_at)}${day(a.starts_at)===day(now())?'<span class="today-tag">OGGI</span>':""}</div>
         <div class="appt-time">${fmtTime(a.starts_at)} – ${fmtTime(a.ends_at)}</div>
       </div>
-      <div class="meta">Tecnico: ${esc(a.technician_name||"Antonio")}</div>
+      <div class="meta"><b>${esc(a.activity_type||"Sopralluogo")}</b> · Tecnico: ${esc(a.technician_name||"Antonio")}</div>
       <div><b>${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</b></div>
       <div class="meta">${esc(a.notes||"")}</div>
       ${a.outcome_notes?`<div class="outcome-box"><b>Esito sopralluogo</b>${esc(a.outcome_notes)}</div>`:""}
@@ -519,47 +519,15 @@ function apptCards(xs){
 
 function agenda(){
   if(profile.role==="technician"){
-    const xs=appts.filter(a=>new Date(a.ends_at)>=new Date(Date.now()-86400000)&&!["cancelled","completed"].includes(a.status));
-    shell(`
-      <div class="row" style="margin-bottom:12px">
-        <button class="btn primary" id="techNewClient">+ Nuovo cliente</button>
-      </div>
-      <div class="notice">Cliente nuovo trovato durante un sopralluogo? Crealo qui e inserisci subito le misure.</div>
-      <div class="section">Agenda sopralluoghi</div>
-      ${apptCards(xs)}
-    `);
+    const todayKey=day(now());
+    const xs=appts.filter(a=>day(a.starts_at)===todayKey && a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+    shell(`<div class="row" style="margin-bottom:12px"><button class="btn primary" id="techNewClient">+ Nuovo cliente</button></div><div class="section">Impegni di oggi</div>${xs.length?apptCards(xs):'<div class="card">Nessun impegno oggi.</div>'}`);
     document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
   }else{
-    shell(`
-      <div class="section">Agenda sopralluoghi</div>
-      <div class="agenda-filters">
-        <button class="agenda-filter active" data-af="upcoming">Prossimi</button>
-        <button class="agenda-filter" data-af="completed">Eseguiti</button>
-        <button class="agenda-filter" data-af="cancelled">Annullati</button>
-        <button class="agenda-filter" data-af="all">Tutti</button>
-      </div>
-      <div id="agendaList"></div>
-    `);
-    const list=document.querySelector("#agendaList");
-    const paint=(mode)=>{
-      let xs=[...appts];
-      if(mode==="upcoming") xs=xs.filter(a=>new Date(a.ends_at)>=new Date()&&!["cancelled","completed"].includes(a.status));
-      if(mode==="completed") xs=xs.filter(a=>a.status==="completed").sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
-      if(mode==="cancelled") xs=xs.filter(a=>a.status==="cancelled").sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
-      if(mode==="all") xs=xs.sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
-      list.innerHTML=apptCards(xs);
-      bindAgendaActions();
-    };
-    document.querySelectorAll("[data-af]").forEach(b=>b.onclick=()=>{
-      document.querySelectorAll("[data-af]").forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      paint(b.dataset.af);
-    });
-    paint("upcoming");
+    shell(`<div class="section">Agenda prossimi 7 giorni</div>${richAgendaHtml(7)}`);
   }
   bindAgendaActions();
 }
-
 function bindAgendaActions(){
   document.querySelectorAll("[data-done]").forEach(b=>b.onclick=()=>setAppt(b.dataset.done,"completed"));
   document.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>setAppt(b.dataset.cancel,"cancelled"));
@@ -642,6 +610,7 @@ function technicianNewClient(){
       technician_name:profile.full_name||"Antonio",
       notes:leadPayload.request,
       source:"Nuovo cliente tecnico",
+      activity_type:"Rilievo misure",
       created_by:user.id
     };
     const {data:appt,error:apptErr}=await sb.from("appointments").insert(apptPayload).select("id").single();
@@ -1006,7 +975,7 @@ function apptForm(l){
       <div class="field"><label>Telefono</label><input name="phone" value="${esc(l.phone||"")}"></div>
       <div class="field"><label>Indirizzo</label><input name="address" value="${esc(l.address||"")}" required></div>
       <div class="field"><label>Comune</label><input name="city" value="${esc(l.city||"")}"></div>
-      <div class="field"><label>Provincia</label><input name="province" value="${esc(l.province||"")}"></div>
+      <div class="field"><label>Provincia</label><input name="province" value="${esc(l.province||"")}"></div><div class="field"><label>Tipo attività</label><select name="activity_type"><option>Sopralluogo</option><option>Installazione</option><option>Rilievo misure</option><option>Assistenza</option><option>Altro</option></select></div>
       <div class="field"><label>Inizio</label><input name="starts_at" type="datetime-local" value="${local(st)}" required></div>
       <div class="field"><label>Fine</label><input name="ends_at" type="datetime-local" value="${local(en)}" required></div>
       <div class="field"><label>Note per Antonio</label><textarea name="notes">${esc(l.request||"")}</textarea></div>
@@ -1044,7 +1013,7 @@ function editAppt(id){
       <div class="field"><label>Telefono</label><input name="phone" value="${esc(a.phone||"")}"></div>
       <div class="field"><label>Indirizzo</label><input name="address" value="${esc(a.address||"")}" required></div>
       <div class="field"><label>Comune</label><input name="city" value="${esc(a.city||"")}"></div>
-      <div class="field"><label>Provincia</label><input name="province" value="${esc(a.province||"")}"></div>
+      <div class="field"><label>Provincia</label><input name="province" value="${esc(a.province||"")}"></div><div class="field"><label>Tipo attività</label><select name="activity_type">${["Sopralluogo","Installazione","Rilievo misure","Assistenza","Altro"].map(v=>`<option ${(a.activity_type||"Sopralluogo")===v?"selected":""}>${v}</option>`).join("")}</select></div>
       <div class="field"><label>Inizio</label><input name="starts_at" type="datetime-local" value="${local(new Date(a.starts_at))}" required></div>
       <div class="field"><label>Fine</label><input name="ends_at" type="datetime-local" value="${local(new Date(a.ends_at))}" required></div>
       <div class="field"><label>Stato</label><select name="status">
@@ -1106,26 +1075,44 @@ function local(d){
   return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;
 }
 
-function availabilityHtml(){
+function minutesLabel(ms){
+  const m=Math.max(0,Math.round(ms/60000));
+  const h=Math.floor(m/60), mm=m%60;
+  return h?(h+"h"+(mm?" "+mm+"m":"")):(m+" min");
+}
+
+function freeRangesForDay(d,items){
+  const start=new Date(d); start.setHours(9,0,0,0);
+  const end=new Date(d); end.setHours(18,0,0,0);
+  let cursor=start; const out=[];
+  const sorted=items.filter(a=>a.status!=="cancelled").map(a=>({s:new Date(a.starts_at),e:new Date(a.ends_at)})).filter(x=>x.e>start&&x.s<end).sort((a,b)=>a.s-b.s);
+  for(const x of sorted){
+    const xs=x.s<start?start:x.s; const xe=x.e>end?end:x.e;
+    if(xs>cursor) out.push([new Date(cursor),new Date(xs)]);
+    if(xe>cursor) cursor=xe;
+  }
+  if(cursor<end) out.push([new Date(cursor),new Date(end)]);
+  return out.filter(([a,b])=>b-a>=30*60000);
+}
+
+function richAgendaHtml(days=7){
   let out="";
-  for(let i=0;i<7;i++){
+  for(let i=0;i<days;i++){
     const d=new Date(); d.setDate(d.getDate()+i); d.setHours(0,0,0,0);
-    let slots=[];
-    for(let h=9;h<18;h++){
-      const s=new Date(d); s.setHours(h,0,0,0);
-      const e=new Date(s.getTime()+3600000);
-      const busy=appts.some(a=>a.status!=="cancelled"&&new Date(a.starts_at)<e&&new Date(a.ends_at)>s);
-      slots.push(`<span class="slot ${busy?"busy":""}">${String(h).padStart(2,"0")}:00</span>`);
-    }
-    out+=`<div class="card"><b>${new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"2-digit",month:"2-digit"}).format(d)}</b><div style="margin-top:7px">${slots.join("")}</div></div>`;
+    const key=day(d);
+    const items=appts.filter(a=>day(a.starts_at)===key&&a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+    const frees=freeRangesForDay(d,items);
+    out+=`<div class="card"><div class="name">${new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"2-digit",month:"2-digit"}).format(d)}${i===0?" · OGGI":""}</div><div class="meta">${items.length} ${items.length===1?"impegno":"impegni"}</div>`;
+    out+=items.length?items.map(a=>`<div class="outcome-box"><b>${fmtTime(a.starts_at)}–${fmtTime(a.ends_at)} · ${minutesLabel(new Date(a.ends_at)-new Date(a.starts_at))} · ${esc(a.activity_type||"Sopralluogo")}</b><div class="name">${esc(a.client_name||"Cliente")}</div><div>${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div><div class="meta">${esc(a.notes||"")}</div><div class="row" style="margin-top:8px"><a class="btn blue" href="tel:${esc(a.phone||"")}">Chiama</a><a class="btn ok" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a><button class="btn ghost" data-measures="${a.id}">Misure</button>${profile.role==="admin"?`<button class="btn ghost" data-edit="${a.id}">Modifica</button>`:""}</div></div>`).join(""):'<div class="meta" style="margin-top:8px">Nessun impegno programmato.</div>';
+    out+=`<div class="meta" style="margin-top:12px"><b>Disponibilità 09:00–18:00</b><br>${frees.length?frees.map(([a,b])=>`<span class="slot">${fmtTime(a)}–${fmtTime(b)}</span>`).join(""):"Nessuna fascia libera di almeno 30 minuti."}</div></div>`;
   }
   return out;
 }
 
 function availability(){
-  shell(`<div class="section">Disponibilità prossimi 7 giorni</div>${availabilityHtml()}`);
+  shell(`<div class="section">Agenda prossimi 7 giorni</div><div class="notice">Vedi impegni, clienti, indirizzi, durata e fasce ancora libere.</div>${richAgendaHtml(7)}`);
+  bindAgendaActions();
 }
-
 function staff(){
   shell(`
     <div class="section">Tecnici attivi</div>
