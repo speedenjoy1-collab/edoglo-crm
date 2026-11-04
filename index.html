@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-04-v21">
+  <meta name="edoglo-build" content="2026-11-04-v22">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -515,6 +515,7 @@ function home(){
   `);
   document.querySelector("#newLead").onclick=()=>leadForm();
   bindLeadCardActions();
+  bindAgendaActions();
 }
 
 function leadCards(xs=leads){
@@ -586,6 +587,7 @@ function leadDetail(id){
       <a class="btn blue" href="tel:${esc(l.phone||"")}">Chiama</a>
       <a class="btn ok" target="_blank" href="https://wa.me/${waNumber(l.phone)}">WhatsApp</a>
       <button class="btn primary" id="schedule">Fissa sopralluogo</button>
+      ${profile.role==="admin"?'<button class="btn bad" id="deleteLead">Elimina cliente</button>':""}
     </div>
     ${callbackEditor(l)}
     <div class="section">Esito chiamata</div>
@@ -598,6 +600,7 @@ function leadDetail(id){
   `);
 
   document.querySelector("#schedule").onclick=()=>apptForm(l);
+  if(document.querySelector("#deleteLead"))document.querySelector("#deleteLead").onclick=()=>deleteLead(id);
   document.querySelector("#callbackForm").onsubmit=e=>{e.preventDefault();saveCallback(id,document.querySelector("#callbackWhen").value,document.querySelector("#callbackNote").value);};
   document.querySelector("#callbackDone").onclick=async()=>{const {error}=await sb.from("leads").update({status:"valid",callback_at:null}).eq("id",id);if(error)return alert(error.message);await load();view="leads";render();};
 
@@ -631,7 +634,7 @@ function apptCards(xs){
           ? `<span class="btn ok">✓ Completato</span>`
           : profile.role==="technician"
             ? `<button class="btn ok" data-done="${a.id}">Eseguito</button>`
-            : `<button class="btn ghost" data-edit="${a.id}">Modifica</button><button class="btn bad" data-cancel="${a.id}">Annulla</button>`}
+            : `<button class="btn ghost" data-edit="${a.id}">Modifica</button><button class="btn bad" data-cancel="${a.id}">Annulla</button><button class="btn bad" data-remove-appt="${a.id}">Elimina</button>`}
       </div>
     </div>`).join("") || '<div class="card">Nessun sopralluogo</div>';
 }
@@ -647,11 +650,34 @@ function agenda(){
   }
   bindAgendaActions();
 }
+async function deleteAppointment(id){
+ if(profile.role!=="admin")return;
+ const a=appts.find(x=>x.id===id);if(!a)return;
+ const {data:sessions,error:se}=await sb.from("measurement_sessions").select("id").eq("appointment_id",id).limit(1);
+ if(se)return alert("Impossibile verificare i rilievi: "+se.message);
+ if(sessions?.length)return alert("Questo appuntamento contiene rilievi tecnici. Per sicurezza non può essere eliminato: puoi annullarlo dall'agenda.");
+ if(!confirm('Eliminare definitivamente l’appuntamento di '+(a.client_name||"questo cliente")+' del '+fmt(a.starts_at)+'?'))return;
+ const {data,error}=await sb.from("appointments").delete().eq("id",id).select("id");
+ if(error)return alert("Eliminazione non riuscita: "+error.message);
+ if(!data?.length)return alert("Non eliminato: controllare i permessi amministratore.");
+ await load();render();
+}
+async function deleteLead(id){
+ if(profile.role!=="admin")return;
+ const l=leads.find(x=>x.id===id);if(!l)return;
+ if(appts.some(a=>a.lead_id===id))return alert("Questo cliente ha appuntamenti collegati. Elimina prima eventuali appuntamenti duplicati senza rilievi.");
+ if(!confirm('Eliminare definitivamente il cliente '+l.full_name+'? Questa operazione non si può annullare.'))return;
+ const {data,error}=await sb.from("leads").delete().eq("id",id).select("id");
+ if(error)return alert("Eliminazione non riuscita: "+error.message);
+ if(!data?.length)return alert("Non eliminato: controllare i permessi amministratore.");
+ await load();view="leads";render();
+}
 function bindAgendaActions(){
   document.querySelectorAll("[data-done]").forEach(b=>b.onclick=()=>setAppt(b.dataset.done,"completed"));
   document.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>setAppt(b.dataset.cancel,"cancelled"));
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editAppt(b.dataset.edit));
   document.querySelectorAll("[data-measures]").forEach(b=>b.onclick=()=>measurementsView(b.dataset.measures));
+  document.querySelectorAll("[data-remove-appt]").forEach(b=>b.onclick=()=>deleteAppointment(b.dataset.removeAppt));
 }
 
 
@@ -1236,7 +1262,7 @@ function richAgendaHtml(days=7){
     const items=appts.filter(a=>day(a.starts_at)===key&&a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
     const frees=freeRangesForDay(d,items);
     out+=`<div class="card"><div class="name">${new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"2-digit",month:"2-digit"}).format(d)}${i===0?" · OGGI":""}</div><div class="meta">${items.length} ${items.length===1?"impegno":"impegni"}</div>`;
-    out+=items.length?items.map(a=>`<div class="outcome-box"><b>${fmtTime(a.starts_at)}–${fmtTime(a.ends_at)} · ${minutesLabel(new Date(a.ends_at)-new Date(a.starts_at))} · ${esc(a.activity_type||"Sopralluogo")}</b><div class="name">${esc(a.client_name||"Cliente")}</div><div>${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div><div class="meta">${esc(a.notes||"")}</div><div class="row" style="margin-top:8px"><a class="btn blue" href="tel:${esc(a.phone||"")}">Chiama</a><a class="btn ok" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a><button class="btn ghost" data-measures="${a.id}">Misure</button>${profile.role==="admin"?`<button class="btn ghost" data-edit="${a.id}">Modifica</button>`:""}</div></div>`).join(""):'<div class="meta" style="margin-top:8px">Nessun impegno programmato.</div>';
+    out+=items.length?items.map(a=>`<div class="outcome-box"><b>${fmtTime(a.starts_at)}–${fmtTime(a.ends_at)} · ${minutesLabel(new Date(a.ends_at)-new Date(a.starts_at))} · ${esc(a.activity_type||"Sopralluogo")}</b><div class="name">${esc(a.client_name||"Cliente")}</div><div>${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div><div class="meta">${esc(a.notes||"")}</div><div class="row" style="margin-top:8px"><a class="btn blue" href="tel:${esc(a.phone||"")}">Chiama</a><a class="btn ok" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a><button class="btn ghost" data-measures="${a.id}">Misure</button>${profile.role==="admin"?`<button class="btn ghost" data-edit="${a.id}">Modifica</button><button class="btn bad" data-remove-appt="${a.id}">Elimina</button>`:""}</div></div>`).join(""):'<div class="meta" style="margin-top:8px">Nessun impegno programmato.</div>';
     out+=`<div class="meta" style="margin-top:12px"><b>Disponibilità 09:00–18:00</b><br>${frees.length?frees.map(([a,b])=>`<span class="slot">${fmtTime(a)}–${fmtTime(b)}</span>`).join(""):"Nessuna fascia libera di almeno 30 minuti."}</div></div>`;
   }
   return out;
