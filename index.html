@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-04-v22">
+  <meta name="edoglo-build" content="2026-11-04-v23">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -216,6 +216,10 @@
 .callback-time.overdue{color:#b91c1c}.callback-time.upcoming{color:#a16207}
 .callback-section{margin:15px 0}
 @media(max-width:650px){.callback-form{grid-template-columns:1fr}.callback-form button{width:100%}.callback-panel{padding:12px}}
+</style><style>
+.social-channels{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+.social-channels .btn{min-height:40px}
+@media(max-width:600px){.social-channels{display:grid;grid-template-columns:1fr 1fr}.social-channels .btn{font-size:12px;white-space:normal}}
 </style></head>
 <body>
 <div id="app"></div>
@@ -343,7 +347,7 @@ async function load(){
 
 function nav(){
   const items=profile.role==="admin"
-    ? [["home","Home"],["leads","Lead"],["quotes","Preventivi"],["agenda","Agenda"],["staff","Tecnici"]]
+    ? [["home","Home"],["social","Social & Campagne"],["leads","Clienti"],["quotes","Preventivi"],["agenda","Agenda"],["staff","Tecnici"]]
     : [["agenda","Oggi"],["availability","Agenda"]];
   return `<div class="tabs">${items.map(([v,n])=>`<button class="tab ${view===v?"active":""}" data-v="${v}">${n}</button>`).join("")}</div>`;
 }
@@ -373,7 +377,7 @@ function shell(body){
 
 function render(){
   if(profile.role==="technician" && view==="home") view="agenda";
-  ({home,leads:leadsView,quotes:quotesView,agenda,availability,staff}[view]||home)();
+  ({home,social:socialView,leads:leadsView,quotes:quotesView,agenda,availability,staff}[view]||home)();
 }
 
 const quoteLabel={not_required:"Non richiesto",to_prepare:"Preventivo da fare",sent:"Preventivo inviato",accepted:"Accettato",declined:"Non accettato"};
@@ -532,6 +536,46 @@ function leadCards(xs=leads){
     </article>`;
   }).join("")||'<div class="card">Nessun cliente in questa sezione.</div>')+'</div>';
 }
+
+function isCampaignLead(l){
+ const src=String(l.source||"").toLowerCase();
+ return l.origin_type==="digital"||/meta|facebook|instagram|google|tiktok|social|ads|campagn|sito/.test(src);
+}
+function campaignChannel(l){
+ const src=String(l.source||"").toLowerCase();
+ if(/facebook/.test(src))return "Facebook";
+ if(/instagram/.test(src))return "Instagram";
+ if(/meta/.test(src))return "Meta Ads (FB/IG)";
+ if(/google/.test(src))return "Google Ads";
+ if(/tiktok/.test(src))return "TikTok";
+ if(/sito|website|web/.test(src))return "Sito web";
+ return "Altra provenienza digitale";
+}
+function socialView(){
+ const digital=leads.filter(isCampaignLead);
+ const channels=["Tutti","Meta Ads (FB/IG)","Facebook","Instagram","Google Ads","TikTok","Sito web","Altra provenienza digitale"];
+ const selected=window.edogloSocialChannel||"Tutti";
+ const filtered=digital.filter(l=>selected==="Tutti"||campaignChannel(l)===selected);
+ const toCall=filtered.filter(l=>l.status==="new"||l.status==="no_answer");
+ const callbacks=filtered.filter(l=>l.status==="callback");
+ const booked=filtered.filter(l=>l.status==="appointment");
+ const contacted=filtered.filter(l=>!["new","no_answer","callback"].includes(l.status));
+ const counters=[["Contatti digitali",filtered.length],["Da chiamare",toCall.length],["Da richiamare",callbacks.length],["Sopralluoghi fissati",booked.length]];
+ shell('<div class="section">Social & Campagne</div>'+
+ '<div class="notice">Qui trovi i contatti registrati nel CRM come provenienti da Meta/Facebook/Instagram, Google, TikTok e sito. I numeri non rappresentano tutte le richieste presenti sulle piattaforme pubblicitarie. I contatti Meta senza distinzione FB/IG restano nella voce Meta Ads (FB/IG).</div>'+
+ '<div class="grid stats">'+counters.map(([name,value])=>'<div class="card stat"><b>'+value+'</b><span>'+name+'</span></div>').join("")+'</div>'+
+ '<div class="section">Da dove arrivano</div><div class="social-channels">'+channels.map(name=>{
+ const n=name==="Tutti"?digital.length:digital.filter(l=>campaignChannel(l)===name).length;
+ return '<button class="btn '+(selected===name?"primary":"ghost")+'" data-social-channel="'+esc(name)+'">'+esc(name)+' · '+n+'</button>';
+ }).join("")+'</div>'+
+ '<div class="section">Contatti da lavorare</div>'+leadCards(toCall)+
+ '<div class="section">Richiami programmati</div>'+leadCards(callbacks.sort((a,b)=>new Date(a.callback_at||0)-new Date(b.callback_at||0)))+
+ '<div class="section">Sopralluoghi fissati</div>'+leadCards(booked)+
+ '<div class="section">Altri contatti già gestiti</div>'+leadCards(contacted.filter(l=>l.status!=="appointment")));
+ document.querySelectorAll("[data-social-channel]").forEach(b=>b.onclick=()=>{window.edogloSocialChannel=b.dataset.socialChannel;socialView();});
+ bindLeadCardActions();
+}
+
 function leadsView(){
   const statuses=[["all","Tutti"],["new","Da chiamare"],["callback","Da richiamare"],["valid","Contattati"],["appointment","Sopralluoghi"],["no_answer","Non risponde"],["other","Altri esiti"]];
   const counts={all:leads.length,new:leads.filter(l=>l.status==="new").length,callback:leads.filter(l=>l.status==="callback").length,valid:leads.filter(l=>l.status==="valid").length,appointment:leads.filter(l=>l.status==="appointment").length,no_answer:leads.filter(l=>l.status==="no_answer").length};
