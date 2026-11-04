@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-03-v19">
+  <meta name="edoglo-build" content="2026-11-04-v20">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -196,6 +196,18 @@
     }
     @media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
   </style>
+<style>
+.lead-filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+.lead-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
+.lead-tile{margin:0!important;min-width:0}
+.lead-tile-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.lead-state{font-size:12px;font-weight:750;padding:6px 9px;border-radius:999px;background:#e5e7eb;color:#374151;white-space:nowrap}
+.lead-state-new{background:#fef3c7;color:#92400e}.lead-state-callback{background:#fee2e2;color:#991b1b}.lead-state-valid,.lead-state-appointment{background:#dcfce7;color:#166534}
+.lead-summary{margin:12px 0;line-height:1.5;max-height:5.8em;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.lead-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.lead-state-field{margin-top:12px}
+@media(max-width:540px){.lead-tile-head{flex-wrap:wrap}.lead-grid{grid-template-columns:1fr}.lead-filters .btn{font-size:12px;padding:9px}}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -453,32 +465,39 @@ function home(){
 }
 
 function leadCards(xs=leads){
-  return xs.map(l=>{
+  return '<div class="lead-grid">'+(xs.map(l=>{
     const due=l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date());
-    return `
-    <div class="card ${due?"callback-due":""}">
-      <div class="name">${esc(l.full_name)}</div>
-      <div class="meta">${esc(originLabel[l.origin_type]||"Cliente")} · ${esc(l.source||"")} · ${esc(label[l.status]||l.status)}</div><div class="meta">${esc(l.city||"")} ${esc(l.province||"")}</div>
-      ${due?`<div class="callback-badge">☎ RICHIAMARE ORA${l.callback_at?" · "+fmt(l.callback_at):""}</div>`:""}
-      <div style="margin-top:6px">${esc(l.request||"")}</div>
-      <div class="row" style="margin-top:10px">
-        <a class="btn blue" href="tel:${esc(l.phone||"")}">Chiama</a>
-        <a class="btn ok" target="_blank" href="https://wa.me/${waNumber(l.phone)}">WhatsApp</a>
-        <button class="btn ghost" data-open="${l.id}">Apri</button>
-      </div>
-    </div>`}).join("") || '<div class="card">Nessun lead</div>';
+    const phone=l.phone||"";
+    return `<article class="card lead-tile ${due?"callback-due":""}">
+      <div class="lead-tile-head"><div><div class="name">${esc(l.full_name)}</div><div class="meta">${esc(l.city||"Comune non indicato")} · ${esc(l.source||"")}</div></div><span class="lead-state lead-state-${esc(l.status||"new")}">${esc(label[l.status]||l.status||"Nuovo")}</span></div>
+      <div class="meta">${fmt(l.created_at)}${l.callback_at?" · Richiamo: "+fmt(l.callback_at):""}</div>
+      ${due?'<div class="callback-badge">☎ RICHIAMARE ORA</div>':""}
+      <div class="lead-summary">${esc(l.request_summary||l.request||"Nessuna richiesta specificata")}</div>
+      <div class="lead-actions"><a class="btn blue" href="tel:${esc(phone)}">Chiama</a><a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${waNumber(phone)}">WhatsApp</a><button class="btn ghost" data-open="${l.id}">Scheda</button></div>
+      <div class="field lead-state-field"><label for="lead-status-${l.id}">Esito contatto</label><select id="lead-status-${l.id}" data-lead-status="${l.id}">${Object.entries(label).map(([key,value])=>`<option value="${key}" ${l.status===key?"selected":""}>${esc(value)}</option>`).join("")}</select></div>
+    </article>`;
+  }).join("")||'<div class="card">Nessun cliente in questa sezione.</div>')+'</div>';
 }
-
 function leadsView(){
-  const digital=leads.filter(l=>l.origin_type==="digital");
-  const manual=leads.filter(l=>l.origin_type==="manual"||!l.origin_type);
-  const technician=leads.filter(l=>l.origin_type==="technician");
-  shell("<div class=\"row\"><button class=\"btn primary\" id=\"newLead\">+ Nuovo cliente</button></div>"+
-    "<div class=\"section\">Lead online</div><div class=\"notice\">Contatti da Meta, Google e sito.</div>"+leadCards(digital)+
-    "<div class=\"section\">Inseriti manualmente</div>"+leadCards(manual)+
-    "<div class=\"section\">Inseriti dal tecnico</div><div class=\"notice\">Quando il tecnico salva le misure, questi clienti passano automaticamente in Preventivi.</div>"+leadCards(technician));
+  const statuses=[["all","Tutti"],["new","Da chiamare"],["callback","Da richiamare"],["valid","Contattati"],["appointment","Sopralluoghi"],["no_answer","Non risponde"],["other","Altri esiti"]];
+  const counts={all:leads.length,new:leads.filter(l=>l.status==="new").length,callback:leads.filter(l=>l.status==="callback").length,valid:leads.filter(l=>l.status==="valid").length,appointment:leads.filter(l=>l.status==="appointment").length,no_answer:leads.filter(l=>l.status==="no_answer").length};
+  const selected=window.edogloLeadFilter||"all";
+  const visible=leads.filter(l=>selected==="all"|| (selected==="other"?!["new","callback","valid","appointment","no_answer"].includes(l.status):l.status===selected));
+  shell('<div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>'+
+    '<div class="section">Gestione contatti</div><div class="notice">Seleziona uno stato per vedere subito chi chiamare, chi hai già contattato e chi richiamare.</div>'+
+    '<div class="lead-filters">'+statuses.map(([key,name])=>`<button class="btn ${selected===key?"primary":"ghost"}" data-filter="${key}">${name} ${counts[key]??leads.filter(l=>!["new","callback","valid","appointment","no_answer"].includes(l.status)).length}</button>`).join("")+'</div>'+
+    leadCards(visible));
   document.querySelector("#newLead").onclick=()=>leadForm();
+  document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{window.edogloLeadFilter=b.dataset.filter;leadsView();});
   document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
+  document.querySelectorAll("[data-lead-status]").forEach(el=>el.onchange=async()=>{
+    const id=el.dataset.leadStatus,previous=leads.find(l=>l.id===id)?.status;
+    const patch={status:el.value};
+    if(el.value==="callback"){const input=prompt("Quando richiamare? (es. 2026-11-05 10:00)");if(input){const date=new Date(input.replace(" ","T"));if(Number.isNaN(date.getTime())){alert("Data non valida");el.value=previous;return;}patch.callback_at=date.toISOString();}}
+    const {error}=await sb.from("leads").update(patch).eq("id",id);
+    if(error){alert(error.message);el.value=previous;return;}
+    await load();leadsView();
+  });
 }
 
 function leadForm(){
@@ -617,7 +636,6 @@ function nextFreeTechnicianSlot(){
 }
 
 function technicianNewClient(){
-  const slot=nextFreeTechnicianSlot();
   shell(`
     <div class="section">Nuovo cliente</div>
     <div class="notice">Inserisci i dati essenziali. Al salvataggio si aprirà subito la scheda per il rilievo misure.</div>
@@ -653,6 +671,7 @@ function technicianNewClient(){
     const {data:lead,error:leadErr}=await sb.from("leads").insert(leadPayload).select("id").single();
     if(leadErr) return alert(leadErr.message);
 
+    const slot=nextFreeTechnicianSlot();
     const apptPayload={
       lead_id:lead.id,
       technician_id:user.id,
@@ -670,7 +689,19 @@ function technicianNewClient(){
       activity_type:"Rilievo misure",
       created_by:user.id
     };
-    const {data:appt,error:apptErr}=await sb.from("appointments").insert(apptPayload).select("id").single();
+    // Un rilievo nuovo non deve essere bloccato da impegni gia presenti.
+    // La scheda misure richiede un appuntamento tecnico collegato; cerchiamo uno slot libero.
+    let appt=null,apptErr=null;
+    for(let attempt=0;attempt<90;attempt++){
+      const start=new Date(slot.start.getTime()+attempt*30*60000);
+      const end=new Date(start.getTime()+30*60000);
+      apptPayload.starts_at=start.toISOString();
+      apptPayload.ends_at=end.toISOString();
+      const result=await sb.from("appointments").insert(apptPayload).select("id").single();
+      if(!result.error){appt=result.data;apptErr=null;break;}
+      apptErr=result.error;
+      if(result.error.code!=="23P01") break;
+    }
     if(apptErr){
       await sb.from("leads").update({status:"new"}).eq("id",lead.id);
       return alert(apptErr.code==="23P01"?"Cliente creato, ma non ho potuto generare automaticamente il sopralluogo per un conflitto di orario.":"Cliente creato, ma il sopralluogo non è stato generato: "+apptErr.message);
