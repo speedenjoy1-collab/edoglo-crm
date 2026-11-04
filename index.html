@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-04-v20">
+  <meta name="edoglo-build" content="2026-11-04-v21">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -208,7 +208,15 @@
 .lead-state-field{margin-top:12px}
 @media(max-width:540px){.lead-tile-head{flex-wrap:wrap}.lead-grid{grid-template-columns:1fr}.lead-filters .btn{font-size:12px;padding:9px}}
 </style>
-</head>
+<style>
+.callback-panel{border:1px solid #eab308;border-radius:14px;padding:15px;margin:15px 0;background:rgba(234,179,8,.07)}
+.callback-form{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:10px;margin-top:12px}
+.callback-form input{width:100%;min-width:0}
+.callback-time{font-weight:800;font-size:18px;margin:9px 0}
+.callback-time.overdue{color:#b91c1c}.callback-time.upcoming{color:#a16207}
+.callback-section{margin:15px 0}
+@media(max-width:650px){.callback-form{grid-template-columns:1fr}.callback-form button{width:100%}.callback-panel{padding:12px}}
+</style></head>
 <body>
 <div id="app"></div>
 <script type="module">
@@ -443,9 +451,54 @@ function quotesView(){
   shell("<div class=\"section\">Preventivi da fare</div><div class=\"notice\">Il cliente entra qui automaticamente quando il tecnico salva il rilievo.</div>"+quoteCards(todo)+"<div class=\"section\">Preventivi inviati</div>"+quoteCards(sent)+"<div class=\"section\">Chiusi</div>"+quoteCards(closed));
   bindQuoteActions();
 }
+
+function callbackGroup(l){
+ if(!l.callback_at)return "unscheduled";
+ const d=new Date(l.callback_at),n=new Date(),midnight=new Date(n.getFullYear(),n.getMonth(),n.getDate()),tomorrow=new Date(midnight.getTime()+86400000);
+ return d<n?"overdue":d<tomorrow?"today":"future";
+}
+function callbackTimeHtml(l){
+ if(l.status!=="callback")return "";
+ const g=callbackGroup(l),d=l.callback_at?new Date(l.callback_at):null;
+ return '<div class="callback-time '+(g==="overdue"||g==="unscheduled"?"overdue":"upcoming")+'">'+(g==="overdue"?"Richiamo in ritardo: ":g==="unscheduled"?"Orario da impostare: ":"Richiamare: ")+(d?esc(d.toLocaleString("it-IT",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})):"non programmato")+'</div>';
+}
+function callbackBoard(){
+ const all=leads.filter(l=>l.status==="callback").sort((a,b)=>new Date(a.callback_at||0)-new Date(b.callback_at||0));
+ return '<div class="section">Agenda richiami ('+all.length+')</div>'+[["overdue","In ritardo"],["unscheduled","Senza orario"],["today","Oggi"],["future","Prossimi giorni"]].map(([g,title])=>{
+ const xs=all.filter(l=>callbackGroup(l)===g);
+ return xs.length?'<div class="callback-section"><div class="name">'+title+' ('+xs.length+')</div>'+leadCards(xs)+'</div>':"";
+ }).join("")+(all.length?"":'<div class="notice">Nessun richiamo in programma.</div>');
+}
+function callbackEditor(l){
+ const d=l.callback_at?new Date(l.callback_at):null;
+ const value=d&&!isNaN(d)?new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16):"";
+ return '<div class="callback-panel"><div class="name">Programma richiamata</div>'+callbackTimeHtml(l)+
+ '<form id="callbackForm" class="callback-form"><div class="field"><label>Data e ora</label><input id="callbackWhen" type="datetime-local" value="'+value+'" required></div>'+
+ '<div class="field"><label>Nota / motivo</label><input id="callbackNote" placeholder="Es. cliente occupato" value="'+esc(l.notes||"")+'></div>'+
+ '<button class="btn primary" type="submit">Salva richiamo</button></form>'+
+ '<button class="btn ok" id="callbackDone" style="margin-top:10px">Richiamo effettuato / Contattato</button></div>';
+}
+async function saveCallback(id,when,note){
+ const d=new Date(when);
+ if(!when||isNaN(d))return alert("Seleziona una data e un orario validi.");
+ const {error}=await sb.from("leads").update({status:"callback",callback_at:d.toISOString(),notes:note||null}).eq("id",id);
+ if(error)return alert(error.message);
+ await load();leadDetail(id);
+}
+function bindLeadCardActions(){
+ document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
+ document.querySelectorAll("[data-lead-status]").forEach(el=>el.onchange=async()=>{
+ const id=el.dataset.leadStatus,old=leads.find(l=>l.id===id)?.status;
+ if(el.value==="callback"){leadDetail(id);document.querySelector("#callbackWhen")?.focus();return;}
+ const {error}=await sb.from("leads").update({status:el.value,callback_at:null}).eq("id",id);
+ if(error){alert(error.message);el.value=old;return;}
+ await load();render();
+ });
+}
+
 function home(){
   const today=appts.filter(a=>day(a.starts_at)===day(now())&&a.status!=="cancelled").length;
-  const dueCallbacks=leads.filter(l=>l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date()));
+  const dueCallbacks=leads.filter(l=>l.status==="callback"&&["overdue","today","unscheduled"].includes(callbackGroup(l)));
   shell(`
     <div class="grid stats">
       <div class="card stat"><b>${leads.filter(l=>l.status==="new").length}</b><span>Nuovi lead</span></div>
@@ -454,14 +507,14 @@ function home(){
       <div class="card stat"><b>${leads.filter(l=>l.quote_status==="to_prepare").length}</b><span>Preventivi da fare</span></div>
     </div>
     <div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
-    ${dueCallbacks.length?`<div class="section">Richiami da fare</div>${leadCards(dueCallbacks.slice(0,5))}`:""}
+    ${callbackBoard()}
     <div class="section">Prossimi sopralluoghi</div>
     ${apptCards(appts.filter(a=>new Date(a.ends_at)>=new Date()&&a.status!=="cancelled").slice(0,6))}
     <div class="section">Disponibilità prossimi 7 giorni</div>
     ${richAgendaHtml(7)}
   `);
   document.querySelector("#newLead").onclick=()=>leadForm();
-  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
+  bindLeadCardActions();
 }
 
 function leadCards(xs=leads){
@@ -471,7 +524,7 @@ function leadCards(xs=leads){
     return `<article class="card lead-tile ${due?"callback-due":""}">
       <div class="lead-tile-head"><div><div class="name">${esc(l.full_name)}</div><div class="meta">${esc(l.city||"Comune non indicato")} · ${esc(l.source||"")}</div></div><span class="lead-state lead-state-${esc(l.status||"new")}">${esc(label[l.status]||l.status||"Nuovo")}</span></div>
       <div class="meta">${fmt(l.created_at)}${l.callback_at?" · Richiamo: "+fmt(l.callback_at):""}</div>
-      ${due?'<div class="callback-badge">☎ RICHIAMARE ORA</div>':""}
+      ${callbackTimeHtml(l)}
       <div class="lead-summary">${esc(l.request_summary||l.request||"Nessuna richiesta specificata")}</div>
       <div class="lead-actions"><a class="btn blue" href="tel:${esc(phone)}">Chiama</a><a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${waNumber(phone)}">WhatsApp</a><button class="btn ghost" data-open="${l.id}">Scheda</button></div>
       <div class="field lead-state-field"><label for="lead-status-${l.id}">Esito contatto</label><select id="lead-status-${l.id}" data-lead-status="${l.id}">${Object.entries(label).map(([key,value])=>`<option value="${key}" ${l.status===key?"selected":""}>${esc(value)}</option>`).join("")}</select></div>
@@ -486,20 +539,11 @@ function leadsView(){
   shell('<div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>'+
     '<div class="section">Gestione contatti</div><div class="notice">Seleziona uno stato per vedere subito chi chiamare, chi hai già contattato e chi richiamare.</div>'+
     '<div class="lead-filters">'+statuses.map(([key,name])=>`<button class="btn ${selected===key?"primary":"ghost"}" data-filter="${key}">${name} ${counts[key]??leads.filter(l=>!["new","callback","valid","appointment","no_answer"].includes(l.status)).length}</button>`).join("")+'</div>'+
-    leadCards(visible));
+    (selected==="callback"?callbackBoard():leadCards(visible)));
   document.querySelector("#newLead").onclick=()=>leadForm();
   document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{window.edogloLeadFilter=b.dataset.filter;leadsView();});
-  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>leadDetail(b.dataset.open));
-  document.querySelectorAll("[data-lead-status]").forEach(el=>el.onchange=async()=>{
-    const id=el.dataset.leadStatus,previous=leads.find(l=>l.id===id)?.status;
-    const patch={status:el.value};
-    if(el.value==="callback"){const input=prompt("Quando richiamare? (es. 2026-11-05 10:00)");if(input){const date=new Date(input.replace(" ","T"));if(Number.isNaN(date.getTime())){alert("Data non valida");el.value=previous;return;}patch.callback_at=date.toISOString();}}
-    const {error}=await sb.from("leads").update(patch).eq("id",id);
-    if(error){alert(error.message);el.value=previous;return;}
-    await load();leadsView();
-  });
+  bindLeadCardActions();
 }
-
 function leadForm(){
   shell(`
     <div class="section">Nuovo cliente / lead</div>
@@ -543,6 +587,7 @@ function leadDetail(id){
       <a class="btn ok" target="_blank" href="https://wa.me/${waNumber(l.phone)}">WhatsApp</a>
       <button class="btn primary" id="schedule">Fissa sopralluogo</button>
     </div>
+    ${callbackEditor(l)}
     <div class="section">Esito chiamata</div>
     <div class="row">
       ${[
@@ -553,13 +598,12 @@ function leadDetail(id){
   `);
 
   document.querySelector("#schedule").onclick=()=>apptForm(l);
+  document.querySelector("#callbackForm").onsubmit=e=>{e.preventDefault();saveCallback(id,document.querySelector("#callbackWhen").value,document.querySelector("#callbackNote").value);};
+  document.querySelector("#callbackDone").onclick=async()=>{const {error}=await sb.from("leads").update({status:"valid",callback_at:null}).eq("id",id);if(error)return alert(error.message);await load();view="leads";render();};
 
   document.querySelectorAll("[data-s]").forEach(b=>b.onclick=async()=>{
-    let p={status:b.dataset.s};
-    if(b.dataset.s==="callback"){
-      const w=prompt("Quando richiamare? Es. 2026-11-04 15:00");
-      if(w) p.callback_at=new Date(w.replace(" ","T")).toISOString();
-    }
+    if(b.dataset.s==="callback"){document.querySelector("#callbackWhen").focus();document.querySelector("#callbackForm").scrollIntoView({behavior:"smooth",block:"center"});return;}
+    let p={status:b.dataset.s,callback_at:null};
     const {error}=await sb.from("leads").update(p).eq("id",id);
     if(error) return alert(error.message);
     await load(); view="leads"; render();
