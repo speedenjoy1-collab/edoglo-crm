@@ -3,8 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#111827">
-  <meta name="edoglo-build" content="2026-11-04-v23">
+  <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <meta name="edoglo-build" content="2026-11-04-v24">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -220,7 +222,106 @@
 .social-channels{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
 .social-channels .btn{min-height:40px}
 @media(max-width:600px){.social-channels{display:grid;grid-template-columns:1fr 1fr}.social-channels .btn{font-size:12px;white-space:normal}}
-</style></head>
+</style>
+<style>
+/* Responsive navigation and accessible touch targets */
+html{-webkit-text-size-adjust:100%}
+body{color:var(--ink)}
+button,a,input,select,textarea{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #60a5fa;outline-offset:2px}
+.tab{white-space:nowrap;min-height:46px}
+.tabs{overflow-x:auto;justify-content:safe center;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.wrap{width:100%;min-width:0}
+.card,.outcome-box,.measure-card{overflow-wrap:anywhere}
+.lead-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+@media(max-width:700px){
+ .wrap{padding:12px 12px calc(108px + env(safe-area-inset-bottom))}
+ .top{padding:10px 4px 12px;gap:8px}
+ h1{font-size:20px}
+ .brand-mark{width:38px;height:38px}
+ .sub{font-size:11px}
+ .card{padding:14px;border-radius:15px}
+ .tabs{justify-content:flex-start;padding:8px 10px calc(8px + env(safe-area-inset-bottom));gap:5px}
+ .tab{min-width:max-content;padding:11px 13px;font-size:12px;flex:0 0 auto}
+ .row .btn{min-height:44px}
+ .appt-date{flex-wrap:wrap}
+ .lead-tools{grid-template-columns:1fr}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stat{min-height:96px}
+ .stat b{font-size:27px}
+ .social-channels{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .lead-actions .btn{flex:1 1 auto}
+}
+@media(max-width:360px){
+ .stats,.social-channels{grid-template-columns:1fr}
+ .brand-mark{display:none}
+ .role-chip{font-size:9px}
+}
+@media(prefers-color-scheme:dark){
+ :root{
+  color-scheme:dark;
+  --ink:#f1f5f9;--muted:#aabbd1;--line:#35455d;--panel:#1b2739;
+  --navy:#e2e8f0;--shadow:0 8px 28px rgba(0,0,0,.22);
+ }
+ html,body{background:#101827;color:var(--ink)}
+ body{background:linear-gradient(180deg,#152238 0,#101827 230px)}
+ .top{background:rgba(16,24,39,.94)}
+ .card,.login,.measure-card,.survey-step{background:#1b2739;border-color:var(--line);color:var(--ink)}
+ .stat:after{background:rgba(148,163,184,.07)}
+ .stat span,.meta,.sub,.survey-step-title{color:#b3c2d7}
+ .role-chip{background:#334155;color:#e2e8f0}
+ .role-technician .role-chip{background:#174f3d;color:#baf7d4}
+ .btn{background:#334155;color:#f8fafc}
+ .btn.primary,.btn.primary:visited,.primary{background:#3b82f6;color:#fff}
+ .btn.ghost,.ghost{background:#25344a;color:#e2e8f0;border-color:#52647d}
+ .btn.blue,.blue{background:#1e3a5f;color:#bfdbfe}
+ .btn.ok,.ok{background:#164e3b;color:#bbf7d0}
+ .btn.warn,.warn{background:#633d16;color:#fde68a}
+ .btn.bad,.bad{background:#642a31;color:#fecaca}
+ .tabs{background:rgba(22,34,52,.98);border-color:#35455d;box-shadow:0 -10px 30px rgba(0,0,0,.28)}
+ .tab{background:transparent;color:#b7c7dd}
+ .tab.active{background:#3b82f6;color:#fff}
+ .field label{color:#d5e2f2}
+ .field input,.field select,.field textarea,.lead-tools input,.lead-tools select,.callback-form input{
+  background:#111d2e;color:#f8fafc;border-color:#52647d;color-scheme:dark
+ }
+ input::placeholder,textarea::placeholder{color:#9eacc0}
+ .notice{background:#3d2b1c;color:#fed7aa;border-color:#86582b}
+ .error,.msg.error{background:#57252c;color:#fecaca}
+ .success,.msg.success{background:#164e3b;color:#bbf7d0}
+ .appt-date{background:#1e3552;border-color:#355a83}
+ .appt-date-main{color:#bfdbfe}
+ .appt-time{color:#f8fafc}
+ .today .appt-date{background:#174738;border-color:#297a5a}
+ .today .appt-date-main{color:#bbf7d0}
+ .role-technician .appt.today{background:linear-gradient(180deg,#183d32 0,#1b2739 100px)}
+ .outcome-box{background:#172335;border-color:#42536a}
+ .outcome-box b{color:#d5e2f2}
+ .slot{background:#174e3d;color:#bbf7d0}
+ .slot.busy{background:#29384c;color:#b0bfd2}
+ .pill{background:#334155;color:#f8fafc}
+ .product-btn,.agenda-filter{background:#25344a;color:#f8fafc;border-color:#52647d}
+ .product-btn.active,.agenda-filter.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+ .session-card.reference{background:#183d32;border-color:#16a34a}
+ .session-badge.preliminary{background:#164e63;color:#bae6fd}
+ .session-badge.definitive{background:#423168;color:#ddd6fe}
+ .callback-panel{background:#3a2d1e;border-color:#a16207}
+ .callback-time.overdue{color:#fca5a5}
+ .callback-time.upcoming{color:#fde68a}
+ .lead-state{background:#334155;color:#f8fafc}
+ .lead-state-new{background:#624516;color:#fde68a}
+ .lead-state-callback{background:#652d35;color:#fecaca}
+ .lead-state-valid,.lead-state-appointment{background:#164e3b;color:#bbf7d0}
+ .callback-badge{background:#624516;color:#fde68a}
+ .appt-status.confirmed,.appt-status.scheduled{background:#1e3a5f;color:#bfdbfe}
+ .appt-status.completed{background:#164e3b;color:#bbf7d0}
+ .appt-status.cancelled{background:#642a31;color:#fecaca}
+ .appt-status.reschedule{background:#624516;color:#fde68a}
+ .role-technician .tabs{border-color:#35455d}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
 <body>
 <div id="app"></div>
 <script type="module">
