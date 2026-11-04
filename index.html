@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-04-v24">
+  <meta name="edoglo-build" content="2026-11-04-v25">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -321,7 +321,38 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
-</head>
+<style>
+.dashboard-intro{display:flex;justify-content:space-between;align-items:center;gap:20px;background:linear-gradient(120deg,#162641,#244879);border-radius:22px;color:#fff;padding:25px;margin:10px 0 18px}
+.dashboard-intro h2{font-size:clamp(23px,3vw,32px);margin:6px 0;letter-spacing:-.035em}
+.dashboard-intro p{margin:0;color:#dce8fa}
+.dashboard-eyebrow{font-size:11px;letter-spacing:.13em;font-weight:900;color:#b9d3fa}
+.dashboard-intro .primary{background:#fff;color:#162641}
+.dashboard-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.dashboard-kpi{display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:18px;cursor:pointer;box-shadow:var(--shadow)}
+.dashboard-kpi strong{font-size:36px;line-height:1.05}
+.dashboard-kpi>span:not(.kpi-icon){font-weight:800}
+.dashboard-kpi small{color:var(--muted);font-size:12px}
+.kpi-icon{font-size:23px;color:#2563eb}
+.dashboard-kpi.urgent{border-left:5px solid #f59e0b}
+.dashboard-shortcuts{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0 28px}
+.dashboard-heading{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-top:18px}
+.dashboard-heading .section{margin:0}
+.dashboard-heading p{color:var(--muted);margin:5px 0 8px;font-size:13px}
+.dashboard-more{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px;margin:18px 0}
+.dashboard-more summary{font-weight:800;cursor:pointer}
+.header-actions{display:flex;align-items:center;gap:8px}
+@media(max-width:800px){.dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.dashboard-intro{align-items:stretch;flex-direction:column;padding:19px}.dashboard-intro .btn{width:100%}.dashboard-kpi{padding:13px}.dashboard-kpi strong{font-size:30px}.dashboard-shortcuts{display:grid;grid-template-columns:1fr 1fr}.dashboard-shortcuts .btn{font-size:12px}.header-actions .btn{padding:9px;font-size:12px}}
+ html[data-theme=dark] :root{
+  color-scheme:dark;
+  --ink:#f1f5f9;--muted:#aabbd1;--line:#35455d;--panel:#1b2739;
+  --navy:#e2e8f0;--shadow:0 8px 28px rgba(0,0,0,.22);
+ } html[data-theme=dark] html,html[data-theme=dark] body{background:#101827;color:var(--ink)} html[data-theme=dark] body{background:linear-gradient(180deg,#152238 0,#101827 230px)} html[data-theme=dark] .top{background:rgba(16,24,39,.94)} html[data-theme=dark] .card,html[data-theme=dark] .login,html[data-theme=dark] .measure-card,html[data-theme=dark] .survey-step{background:#1b2739;border-color:var(--line);color:var(--ink)} html[data-theme=dark] .stat:after{background:rgba(148,163,184,.07)} html[data-theme=dark] .stat span,html[data-theme=dark] .meta,html[data-theme=dark] .sub,html[data-theme=dark] .survey-step-title{color:#b3c2d7} html[data-theme=dark] .role-chip{background:#334155;color:#e2e8f0} html[data-theme=dark] .role-technician .role-chip{background:#174f3d;color:#baf7d4} html[data-theme=dark] .btn{background:#334155;color:#f8fafc} html[data-theme=dark] .btn.primary,html[data-theme=dark] .btn.primary:visited,html[data-theme=dark] .primary{background:#3b82f6;color:#fff} html[data-theme=dark] .btn.ghost,html[data-theme=dark] .ghost{background:#25344a;color:#e2e8f0;border-color:#52647d} html[data-theme=dark] .btn.blue,html[data-theme=dark] .blue{background:#1e3a5f;color:#bfdbfe} html[data-theme=dark] .btn.ok,html[data-theme=dark] .ok{background:#164e3b;color:#bbf7d0} html[data-theme=dark] .btn.warn,html[data-theme=dark] .warn{background:#633d16;color:#fde68a} html[data-theme=dark] .btn.bad,html[data-theme=dark] .bad{background:#642a31;color:#fecaca} html[data-theme=dark] .tabs{background:rgba(22,34,52,.98);border-color:#35455d;box-shadow:0 -10px 30px rgba(0,0,0,.28)} html[data-theme=dark] .tab{background:transparent;color:#b7c7dd} html[data-theme=dark] .tab.active{background:#3b82f6;color:#fff} html[data-theme=dark] .field label{color:#d5e2f2} html[data-theme=dark] .field input,html[data-theme=dark] .field select,html[data-theme=dark] .field textarea,html[data-theme=dark] .lead-tools input,html[data-theme=dark] .lead-tools select,html[data-theme=dark] .callback-form input{
+  background:#111d2e;color:#f8fafc;border-color:#52647d;color-scheme:dark
+ } html[data-theme=dark] input::placeholder,html[data-theme=dark] textarea::placeholder{color:#9eacc0} html[data-theme=dark] .notice{background:#3d2b1c;color:#fed7aa;border-color:#86582b} html[data-theme=dark] .error,html[data-theme=dark] .msg.error{background:#57252c;color:#fecaca} html[data-theme=dark] .success,html[data-theme=dark] .msg.success{background:#164e3b;color:#bbf7d0} html[data-theme=dark] .appt-date{background:#1e3552;border-color:#355a83} html[data-theme=dark] .appt-date-main{color:#bfdbfe} html[data-theme=dark] .appt-time{color:#f8fafc} html[data-theme=dark] .today .appt-date{background:#174738;border-color:#297a5a} html[data-theme=dark] .today .appt-date-main{color:#bbf7d0} html[data-theme=dark] .role-technician .appt.today{background:linear-gradient(180deg,#183d32 0,#1b2739 100px)} html[data-theme=dark] .outcome-box{background:#172335;border-color:#42536a} html[data-theme=dark] .outcome-box b{color:#d5e2f2} html[data-theme=dark] .slot{background:#174e3d;color:#bbf7d0} html[data-theme=dark] .slot.busy{background:#29384c;color:#b0bfd2} html[data-theme=dark] .pill{background:#334155;color:#f8fafc} html[data-theme=dark] .product-btn,html[data-theme=dark] .agenda-filter{background:#25344a;color:#f8fafc;border-color:#52647d} html[data-theme=dark] .product-btn.active,html[data-theme=dark] .agenda-filter.active{background:#3b82f6;color:#fff;border-color:#3b82f6} html[data-theme=dark] .session-card.reference{background:#183d32;border-color:#16a34a} html[data-theme=dark] .session-badge.preliminary{background:#164e63;color:#bae6fd} html[data-theme=dark] .session-badge.definitive{background:#423168;color:#ddd6fe} html[data-theme=dark] .callback-panel{background:#3a2d1e;border-color:#a16207} html[data-theme=dark] .callback-time.overdue{color:#fca5a5} html[data-theme=dark] .callback-time.upcoming{color:#fde68a} html[data-theme=dark] .lead-state{background:#334155;color:#f8fafc} html[data-theme=dark] .lead-state-new{background:#624516;color:#fde68a} html[data-theme=dark] .lead-state-callback{background:#652d35;color:#fecaca} html[data-theme=dark] .lead-state-valid,html[data-theme=dark] .lead-state-appointment{background:#164e3b;color:#bbf7d0} html[data-theme=dark] .callback-badge{background:#624516;color:#fde68a} html[data-theme=dark] .appt-status.confirmed,html[data-theme=dark] .appt-status.scheduled{background:#1e3a5f;color:#bfdbfe} html[data-theme=dark] .appt-status.completed{background:#164e3b;color:#bbf7d0} html[data-theme=dark] .appt-status.cancelled{background:#642a31;color:#fecaca} html[data-theme=dark] .appt-status.reschedule{background:#624516;color:#fde68a} html[data-theme=dark] .role-technician .tabs{border-color:#35455d}
+
+html[data-theme=light],html[data-theme=light] body{color-scheme:light}
+</style></head>
 <body>
 <div id="app"></div>
 <script type="module">
@@ -467,11 +498,12 @@ function shell(body){
           <div class="role-chip">${profile.role==="admin"?"ADMIN":"TECNICO"}${displayName?" · "+esc(displayName):""}</div>
         </div>
       </div>
-      <button class="btn ghost" id="logout">Esci</button>
+      <div class="header-actions"><button class="btn ghost" id="themeToggle" type="button" title="Cambia tema">◐ Tema</button><button class="btn ghost" id="logout">Esci</button></div>
     </div>
     ${body}
   </div>
   ${nav()}`;
+  document.querySelector("#themeToggle").onclick=()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";localStorage.setItem("edoglo-theme",dark?"dark":"light");};
   document.querySelector("#logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
   document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
 }
@@ -602,27 +634,29 @@ function bindLeadCardActions(){
 }
 
 function home(){
-  const today=appts.filter(a=>day(a.starts_at)===day(now())&&a.status!=="cancelled").length;
-  const dueCallbacks=leads.filter(l=>l.status==="callback"&&["overdue","today","unscheduled"].includes(callbackGroup(l)));
-  shell(`
-    <div class="grid stats">
-      <div class="card stat"><b>${leads.filter(l=>l.status==="new").length}</b><span>Nuovi lead</span></div>
-      <div class="card stat"><b>${dueCallbacks.length}</b><span>Da richiamare</span></div>
-      <div class="card stat"><b>${today}</b><span>Sopralluoghi oggi</span></div>
-      <div class="card stat"><b>${leads.filter(l=>l.quote_status==="to_prepare").length}</b><span>Preventivi da fare</span></div>
-    </div>
-    <div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
-    ${callbackBoard()}
-    <div class="section">Prossimi sopralluoghi</div>
-    ${apptCards(appts.filter(a=>new Date(a.ends_at)>=new Date()&&a.status!=="cancelled").slice(0,6))}
-    <div class="section">Disponibilità prossimi 7 giorni</div>
-    ${richAgendaHtml(7)}
-  `);
-  document.querySelector("#newLead").onclick=()=>leadForm();
-  bindLeadCardActions();
-  bindAgendaActions();
+ const dueCallbacks=leads.filter(l=>l.status==="callback"&&["overdue","today","unscheduled"].includes(callbackGroup(l)));
+ const today=appts.filter(a=>day(a.starts_at)===day(now())&&a.status!=="cancelled").length;
+ const digital=leads.filter(isCampaignLead).length;
+ const upcoming=appts.filter(a=>new Date(a.ends_at)>=new Date()&&a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,4);
+ shell(`
+ <div class="dashboard-intro"><div><div class="dashboard-eyebrow">PANNELLO AMMINISTRATORE</div><h2>La tua attività, a colpo d'occhio</h2><p>Contatti, richiami e sopralluoghi: tutto quello che serve oggi.</p></div><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
+ <div class="dashboard-kpis">
+  <button class="dashboard-kpi" data-go="leads"><span class="kpi-icon">✉</span><strong>${leads.filter(l=>l.status==="new").length}</strong><span>Da contattare</span><small>Apri clienti →</small></button>
+  <button class="dashboard-kpi urgent" data-go="leads"><span class="kpi-icon">☎</span><strong>${dueCallbacks.length}</strong><span>Richiami da fare</span><small>Apri richiami →</small></button>
+  <button class="dashboard-kpi" data-go="social"><span class="kpi-icon">◎</span><strong>${digital}</strong><span>Contatti digitali</span><small>Social e campagne →</small></button>
+  <button class="dashboard-kpi" data-go="quotes"><span class="kpi-icon">▤</span><strong>${leads.filter(l=>l.quote_status==="to_prepare").length}</strong><span>Preventivi da fare</span><small>Apri preventivi →</small></button>
+ </div>
+ <div class="dashboard-shortcuts"><button class="btn ghost" data-go="agenda">▦ Agenda completa</button><button class="btn ghost" data-go="social">◎ Campagne pubblicitarie</button><button class="btn ghost" data-go="leads">☷ Tutti i clienti</button></div>
+ <div class="dashboard-heading"><div><div class="section">Richiami prioritari</div><p>Clienti da ricontattare, ordinati per urgenza.</p></div></div>
+ ${callbackBoard()}
+ <div class="dashboard-heading"><div><div class="section">Prossimi sopralluoghi</div><p>${today} programmati oggi · i prossimi appuntamenti</p></div><button class="btn ghost" data-go="agenda">Vedi agenda</button></div>
+ ${apptCards(upcoming)}
+ <details class="dashboard-more"><summary>Visualizza disponibilità dei prossimi 7 giorni</summary>${richAgendaHtml(7)}</details>
+ `);
+ document.querySelector("#newLead").onclick=()=>leadForm();
+ document.querySelectorAll("[data-go]").forEach(x=>x.onclick=()=>{view=x.dataset.go;render();});
+ bindLeadCardActions();bindAgendaActions();
 }
-
 function leadCards(xs=leads){
   return '<div class="lead-grid">'+(xs.map(l=>{
     const due=l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date());
