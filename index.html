@@ -822,7 +822,7 @@ function agenda(){
   if(profile.role==="technician"){
     const todayKey=day(now());
     const xs=appts.filter(a=>day(a.starts_at)===todayKey && a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
-    shell(`<div class="row" style="margin-bottom:12px"><button class="btn primary" id="techNewClient">+ Nuovo cliente</button></div><div class="section">Impegni di oggi</div>${xs.length?apptCards(xs):'<div class="card">Nessun impegno oggi.</div>'}`);
+    shell(`<div class="row" style="margin-bottom:12px"><button class="btn primary" id="techNewClient">+ Nuovo cliente</button></div><div class="section">Impegni di oggi</div>${xs.length?apptCards(xs):'<div class="card">Nessun impegno oggi.</div>'}<div class="section">Storico clienti e rilievi</div>${appts.filter(a=>a.technician_id===user.id && a.status!=="cancelled" && day(a.starts_at)!==todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)).map(a=>`<div class="card"><div class="name">${esc(a.client_name||"Cliente")}</div><div class="meta">${fmtDate(a.starts_at)} · ${esc(a.activity_type||"Rilievo")}</div><div class="row" style="margin-top:8px"><button class="btn blue" data-measures="${a.id}">Apri misure</button></div></div>`).join("")||'<div class="card">Nessun rilievo precedente disponibile.</div>'}`);
     document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
   }else{
     shell(`<div class="section">Agenda prossimi 7 giorni</div>${richAgendaHtml(7)}`);
@@ -1240,8 +1240,11 @@ async function measurementsView(appointmentId,sessionId=null){
     x.width_mm=x.width_mm?Number(x.width_mm):null;
     x.height_mm=x.height_mm?Number(x.height_mm):null;
     x.wall_thickness_mm=x.wall_thickness_mm?Number(x.wall_thickness_mm):null;
+    const saveBtn=e.currentTarget.querySelector('button[type="submit"]');
+    if(saveBtn){saveBtn.disabled=true;saveBtn.textContent="Salvataggio in corso…";}
     const {error}=await sb.from("appointment_measurements").insert(x);
-    if(error) return alert(error.message);
+    if(error){if(saveBtn){saveBtn.disabled=false;saveBtn.textContent="+ Salva posizione";}return alert("Misura NON salvata: "+error.message);}
+    alert("✓ Posizione salvata nel database. Puoi riaprirla da Storico clienti e rilievi.");
     measurementsView(appointmentId,current.id);
   };
 
@@ -1275,9 +1278,13 @@ async function measurementsView(appointmentId,sessionId=null){
   });
 
   document.querySelector("#saveSurvey").onclick=async()=>{
+    const btn=document.querySelector("#saveSurvey");
+    btn.disabled=true;btn.textContent="Verifica salvataggio…";
     const {error}=await sb.rpc("save_measurement_session",{p_session_id:current.id});
-    if(error) return alert(error.message.includes("NESSUNA_MISURA")?"Inserisci almeno una posizione prima di salvare.":error.message);
-    alert(current.session_type==="definitive"?"Misure definitive salvate. Cliente spostato in Preventivi da fare.":"Rilievo salvato. Cliente spostato in Preventivi da fare.");
+    if(error){btn.disabled=false;btn.textContent="✓ Salva rilievo";return alert(error.message.includes("NESSUNA_MISURA")?"Inserisci almeno una posizione prima di salvare.":"Rilievo NON confermato: "+error.message);}
+    const {data:verified,error:verifyError}=await sb.from("measurement_sessions").select("status,saved_at").eq("id",current.id).single();
+    if(verifyError||verified?.status!=="saved"){btn.disabled=false;btn.textContent="✓ Salva rilievo";return alert("Non è stato possibile verificare il salvataggio. Riprova senza chiudere.");}
+    alert("✓ Rilievo salvato e verificato nel database. Lo ritrovi in Storico clienti e rilievi e in Preventivi.");
     await load();
     measurementsView(appointmentId,current.id);
   };
