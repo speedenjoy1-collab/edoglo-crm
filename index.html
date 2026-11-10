@@ -367,6 +367,7 @@ const sb=createClient(
 const app=document.querySelector("#app");
 let user=null, profile=null, leads=[], appts=[], techs=[], unavail=[], view="home";
 const surveyStateBySession={};
+let weekMonday=null,weekSearch="";
 
 const esc=v=>String(v??"").replace(/[&<>'"]/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[s]));
 const digits=v=>String(v||"").replace(/[^0-9]/g,"");
@@ -822,8 +823,9 @@ function agenda(){
   if(profile.role==="technician"){
     const todayKey=day(now());
     const xs=appts.filter(a=>day(a.starts_at)===todayKey && a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
-    shell(`<div class="row" style="margin-bottom:12px"><button class="btn primary" id="techNewClient">+ Nuovo cliente</button></div><div class="section">Impegni di oggi</div>${xs.length?apptCards(xs):'<div class="card">Nessun impegno oggi.</div>'}<div class="section">Storico clienti e rilievi</div>${appts.filter(a=>a.technician_id===user.id && a.status!=="cancelled" && day(a.starts_at)!==todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)).map(a=>`<div class="card"><div class="name">${esc(a.client_name||"Cliente")}</div><div class="meta">${fmtDate(a.starts_at)} · ${esc(a.activity_type||"Rilievo")}</div><div class="row" style="margin-top:8px"><button class="btn blue" data-measures="${a.id}">Apri misure</button></div></div>`).join("")||'<div class="card">Nessun rilievo precedente disponibile.</div>'}`);
+    shell(`<div class="row" style="margin-bottom:12px"><button class="btn primary" id="techNewClient">+ Nuovo cliente</button><button class="btn blue" id="openWeek">Calendario</button></div><div class="section">Impegni di oggi</div>${xs.length?apptCards(xs):'<div class="card">Nessun impegno oggi.</div>'}<div class="section">Storico clienti e rilievi</div>${appts.filter(a=>a.technician_id===user.id && a.status!=="cancelled" && day(a.starts_at)!==todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)).map(a=>`<div class="card"><div class="name">${esc(a.client_name||"Cliente")}</div><div class="meta">${fmtDate(a.starts_at)} · ${esc(a.activity_type||"Rilievo")}</div><div class="row" style="margin-top:8px"><button class="btn blue" data-measures="${a.id}">Apri misure</button></div></div>`).join("")||'<div class="card">Nessun rilievo precedente disponibile.</div>'}`);
     document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
+    document.querySelector("#openWeek").onclick=()=>{view="availability";render();};
   }else{
     shell(`<div class="section">Agenda prossimi 7 giorni</div>${richAgendaHtml(7)}`);
   }
@@ -1454,7 +1456,37 @@ function richAgendaHtml(days=7){
   return out;
 }
 
+function technicianCalendar(){
+  const monday=d=>{const x=new Date(d);x.setHours(12,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x;};
+  const dateKey=d=>day(d.toISOString()),today=day(now());
+  if(!weekMonday)weekMonday=monday(new Date());
+  const dates=Array.from({length:7},(_,i)=>{const d=new Date(weekMonday);d.setDate(d.getDate()+i);return d;});
+  const own=appts.filter(a=>a.technician_id===user.id);
+  const q=weekSearch.toLocaleLowerCase("it").trim();
+  const results=q?own.filter(a=>{const l=leads.find(l=>l.id===a.lead_id);return [a.client_name,a.phone,a.address,a.city,a.province,a.notes,a.activity_type,l?.full_name,l?.phone,l?.address].filter(Boolean).join(" ").toLocaleLowerCase("it").includes(q)}).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)):[];
+  shell(`<div class="section">Agenda settimanale di Antonio</div>
+  <div class="notice">Puoi consultare settimane passate e future, recuperare indirizzi e telefoni e riaprire le misure dei tuoi clienti.</div>
+  <div class="card"><div class="row" style="justify-content:space-between;align-items:center">
+    <button class="btn ghost" id="weekPrev">← Settimana prima</button>
+    <b>${fmtDate(dates[0])} – ${fmtDate(dates[6])}</b>
+    <button class="btn ghost" id="weekNext">Settimana dopo →</button>
+    <button class="btn blue" id="weekToday">Questa settimana</button></div>
+    <div class="field"><label for="weekJump">Vai alla settimana della data</label><input type="date" id="weekJump" value="${dateKey(weekMonday)}"></div>
+    <div class="row">${dates.map(d=>{const key=dateKey(d),n=own.filter(a=>day(a.starts_at)===key).length;return `<button type="button" class="btn ${key===today?"ok":"ghost"}" data-weekday="${key}">${new Intl.DateTimeFormat("it-IT",{weekday:"short",day:"2-digit",timeZone:"Europe/Rome"}).format(d)} (${n})</button>`}).join("")}</div>
+  </div>
+  <form class="card" id="weekFind"><label for="weekSearch"><b>Cerca su tutto lo storico appuntamenti</b></label><div class="row" style="margin-top:8px"><input id="weekSearch" style="flex:1;min-width:160px;padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink)" value="${esc(weekSearch)}" placeholder="Nome cliente, indirizzo, telefono"><button class="btn primary">Cerca</button><button class="btn ghost" type="button" id="weekReset">Cancella</button></div></form>
+  ${q?`<div class="section">Risultati (${results.length})</div>${results.length?apptCards(results):'<div class="card">Nessun appuntamento trovato.</div>'}`:dates.map(d=>{const key=dateKey(d),xs=own.filter(a=>day(a.starts_at)===key).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));return `<div id="week-day-${key}" style="scroll-margin-top:110px"><div class="section">${fmtDate(d)} · ${xs.length} appuntamenti</div>${xs.length?apptCards(xs):'<div class="meta">Nessun appuntamento.</div>'}</div>`}).join("")}`);
+  document.querySelector("#weekPrev").onclick=()=>{weekMonday.setDate(weekMonday.getDate()-7);weekSearch="";technicianCalendar()};
+  document.querySelector("#weekNext").onclick=()=>{weekMonday.setDate(weekMonday.getDate()+7);weekSearch="";technicianCalendar()};
+  document.querySelector("#weekToday").onclick=()=>{weekMonday=monday(new Date());weekSearch="";technicianCalendar()};
+  document.querySelector("#weekJump").onchange=e=>{if(e.target.value){weekMonday=monday(new Date(e.target.value+"T12:00:00"));weekSearch="";technicianCalendar()}};
+  document.querySelectorAll("[data-weekday]").forEach(b=>b.onclick=()=>document.getElementById("week-day-"+b.dataset.weekday)?.scrollIntoView({behavior:"smooth",block:"start"}));
+  document.querySelector("#weekFind").onsubmit=e=>{e.preventDefault();weekSearch=document.querySelector("#weekSearch").value.trim();technicianCalendar()};
+  document.querySelector("#weekReset").onclick=()=>{weekSearch="";technicianCalendar()};
+  bindAgendaActions();
+}
 function availability(){
+  if(profile.role==="technician"){technicianCalendar();return;}
   shell(`<div class="section">Agenda prossimi 7 giorni</div><div class="notice">Vedi impegni, clienti, indirizzi, durata e fasce ancora libere.</div>${richAgendaHtml(7)}`);
   bindAgendaActions();
 }
