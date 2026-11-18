@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-18-v26">
+  <meta name="edoglo-build" content="2026-11-18-v27">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -491,6 +491,115 @@ html[data-theme=dark] .role-admin .task-row,html[data-theme=dark] .role-admin .a
 html[data-theme=dark] .role-admin .task-detail small,html[data-theme=dark] .role-admin .lead-summary{color:#b8c5d7}
 html[data-theme=dark] .role-admin .lead-search input{background:#111d2e;border-color:#52647d;color:#fff}
 </style>
+<style id="edoglo-lead-first-v27">
+/* Edoglo CRM v27 - lead inbox first, compact administrative surfaces, mobile */
+.role-admin .wrap{max-width:1220px}
+.role-admin .top{position:sticky;z-index:70;margin-bottom:12px;padding:10px 3px 11px}
+.role-admin .brand h1{font-size:18px;font-weight:850}
+.role-admin .brand-mark{width:35px;height:35px;font-size:17px;border-radius:9px}
+.role-admin .brand .sub,.role-admin .role-chip{display:none}
+.role-admin .crm-add-btn{min-height:36px!important;padding:7px 12px!important;border-radius:9px;font-size:12px!important;white-space:nowrap}
+.role-admin .crm-header-actions{position:relative}
+.role-admin .crm-header-actions summary{height:35px;min-width:35px;display:grid;place-items:center;background:#fff;border:1px solid #e3e6ed;border-radius:9px;font-size:20px;cursor:pointer;list-style:none}
+.role-admin .crm-header-actions summary::-webkit-details-marker{display:none}
+.role-admin .crm-header-popup{position:absolute;z-index:100;right:0;top:calc(100% + 8px);min-width:130px;display:grid;gap:4px;padding:8px;background:#fff;border:1px solid #e4e7ec;border-radius:12px;box-shadow:0 10px 22px rgba(20,30,45,.12)}
+.role-admin .crm-header-popup button{width:100%;justify-content:flex-start;font-size:12px;min-height:36px;border:0}
+.role-admin .crm-nav-divider{color:#8c99aa;font-size:10px;letter-spacing:.1em;font-weight:800;margin:19px 12px 7px}
+.role-admin .tabs .tab{gap:10px}
+.role-admin .tabs .tab.active{box-shadow:none}
+.role-admin .crm-inbox{max-width:1060px}
+.role-admin .crm-inbox-header,.role-admin .crm-simple-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:9px 0 12px}
+.role-admin .crm-inbox-header h2,.role-admin .crm-simple-head h2{font-size:clamp(22px,3.5vw,27px);font-weight:870;letter-spacing:-.04em;line-height:1.1;margin:3px 0 5px}
+.role-admin .crm-eyebrow{font-size:10px;letter-spacing:.14em;color:#bd2d42;font-weight:900}
+.role-admin .crm-inbox-header p,.role-admin .crm-simple-head p{margin:0;color:#758195;font-size:12px;line-height:1.35}
+.role-admin .crm-count-new{flex:0 0 auto;align-self:center;background:#fceff1;color:#af1f37;font-size:11px;font-weight:900;padding:7px 10px;border-radius:10px;white-space:nowrap}
+.role-admin .crm-total-count{font-size:12px;color:#8a95a5;white-space:nowrap}
+.role-admin .crm-inbox-toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 20px}
+.role-admin .crm-mini-link{border:1px solid #e5e8ee;background:#fff;border-radius:8px;padding:7px 11px;color:#475569;font-size:12px;font-weight:750;cursor:pointer}
+.role-admin .crm-list-section{margin:0 0 20px}
+.role-admin .crm-list-header{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+.role-admin .crm-list-header h3{font-size:14px;line-height:1.25;margin:0;font-weight:850;color:#273445}
+.role-admin .crm-list-header>span,.role-admin .crm-quote-closed summary span{font-size:11px;border-radius:8px;padding:3px 7px;color:#707e90;background:#edf0f5}
+.role-admin .crm-lead-list{border:1px solid #e5e8ee;border-radius:12px;background:white;overflow:hidden}
+.role-admin .crm-lead-row{width:100%;display:flex;align-items:center;gap:10px;padding:10px 13px;min-height:67px;border:0;border-bottom:1px solid #edf0f3;background:#fff;text-align:left;color:#1d2939;cursor:pointer}
+.role-admin .crm-lead-row:last-child{border-bottom:0}
+.role-admin .crm-lead-row:hover,.role-admin .crm-lead-row:focus-visible{background:#fff8f9}
+.role-admin .crm-lead-row.is-new{border-left:3px solid #ca2b43;padding-left:10px}
+.role-admin .crm-lead-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.role-admin .crm-lead-title{font-size:13px;font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.role-admin .crm-lead-meta{font-size:11px;color:#59687b;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.role-admin .crm-lead-request{font-size:11px;color:#8894a4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.role-admin .crm-lead-end{display:flex;flex-direction:column;align-items:flex-end;flex:0 0 120px;gap:5px}
+.role-admin .crm-lead-time{font-size:10px;color:#8390a1}
+.role-admin .crm-lead-source{font-size:10px;color:#97a1ae;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.role-admin .crm-lead-status{display:inline-flex;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#edf0f5;color:#566376;font-size:10px;font-weight:850;padding:3px 7px;border-radius:7px}
+.role-admin .crm-lead-status.status-new{background:#fff0d9;color:#995b09}
+.role-admin .crm-lead-status.status-callback{background:#fce6e7;color:#a52638}
+.role-admin .crm-lead-status.status-appointment,.role-admin .crm-lead-status.status-won{background:#e5f7ea;color:#167142}
+.role-admin .crm-lead-chevron{font-size:21px;line-height:1;color:#9eacbb;flex:0 0 auto}
+.role-admin .crm-empty{font-size:12px;background:#fff;border:1px dashed #d6dde6;color:#8792a1;padding:13px 14px;border-radius:10px;margin:0}
+.role-admin .crm-search-input{width:100%;min-height:40px;border-radius:10px;padding:10px 13px;border:1px solid #d9dee8;background:#fff;color:#1d2939;font-size:13px;margin:8px 0 12px}
+.role-admin .crm-filters{display:flex;overflow-x:auto;gap:7px;scrollbar-width:thin;padding:1px 1px 9px;margin-bottom:9px}
+.role-admin .crm-filter{border:1px solid #e3e7ef;background:#fff;border-radius:9px;padding:8px 11px;white-space:nowrap;color:#667085;font-size:11px;font-weight:800;cursor:pointer}
+.role-admin .crm-filter span{padding-left:3px;color:#929eac}
+.role-admin .crm-filter.active{background:#243143;border-color:#243143;color:#fff}
+.role-admin .crm-filter.active span{color:#d5dce7}
+.role-admin .crm-quote-group{margin:20px 0}
+.role-admin .crm-quote-group .card{margin:6px 0}
+.role-admin .crm-quote-row{display:flex;align-items:center;justify-content:space-between;gap:14px;background:#fff;border:1px solid #e5e8ee;border-radius:10px;padding:11px 13px;margin:6px 0}
+.role-admin .crm-quote-row>div:first-child{display:grid;gap:4px;flex:1;min-width:0}
+.role-admin .crm-quote-row strong{font-size:13px}
+.role-admin .crm-quote-row small{font-size:11px;color:#7e8b9c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.role-admin .crm-quote-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.role-admin .crm-quote-actions .btn{min-height:32px;font-size:11px;padding:6px 9px;border-radius:8px}
+.role-admin .crm-quote-closed{margin:18px 0;background:#fff;border:1px solid #e5e8ee;border-radius:10px;padding:12px 13px}
+.role-admin .crm-quote-closed summary{font-size:12px;font-weight:850;cursor:pointer}
+.role-admin .crm-quote-closed .card{margin-top:7px}
+@media(min-width:920px){
+ .role-admin .tabs{width:215px}
+ .role-admin .wrap{margin-left:215px;max-width:calc(100% - 215px);padding:19px 26px 48px}
+}
+@media(max-width:919px){
+ .role-admin .crm-nav-divider{display:none}
+ .role-admin .tabs{gap:0;padding:6px 4px calc(7px + env(safe-area-inset-bottom))}
+ .role-admin .tab{padding:5px 1px;min-height:48px;font-size:10px;gap:4px}
+ .role-admin .tab-icon{font-size:19px}
+ .role-admin .crm-lead-row{padding:9px 10px;min-height:63px;gap:8px}
+ .role-admin .crm-lead-row.is-new{padding-left:7px}
+ .role-admin .crm-quote-row{display:block}
+ .role-admin .crm-quote-actions{justify-content:flex-start;margin-top:10px}
+}
+@media(max-width:560px){
+ .role-admin .wrap{padding:8px 12px calc(88px + env(safe-area-inset-bottom))}
+ .role-admin .top{padding:8px 0 10px;margin-bottom:10px}
+ .role-admin .crm-inbox-header,.role-admin .crm-simple-head{margin-top:5px}
+ .role-admin .crm-inbox-header h2,.role-admin .crm-simple-head h2{font-size:22px}
+ .role-admin .crm-inbox-header p,.role-admin .crm-simple-head p{font-size:11px}
+ .role-admin .crm-lead-main{gap:3px}
+ .role-admin .crm-lead-title{font-size:13px}
+ .role-admin .crm-lead-end{flex-basis:99px}
+ .role-admin .crm-lead-request{display:none}
+ .role-admin .crm-lead-meta{font-size:11px}
+ .role-admin .crm-lead-source{display:none}
+ .role-admin .crm-lead-status{font-size:9px;max-width:100px}
+ .role-admin .crm-lead-time{font-size:9px}
+ .role-admin .crm-list-header h3{font-size:13px}
+ .role-admin .crm-inbox-toolbar{margin:7px 0 15px}
+ .role-admin .crm-add-btn{min-height:35px}
+ .role-admin .crm-header-actions summary{height:35px}
+}
+/* Keep the technician's app presentation unchanged. */
+html[data-theme=dark] .role-admin .crm-lead-list,
+html[data-theme=dark] .role-admin .crm-lead-row,
+html[data-theme=dark] .role-admin .crm-quote-row,
+html[data-theme=dark] .role-admin .crm-header-popup,
+html[data-theme=dark] .role-admin .crm-search-input,
+html[data-theme=dark] .role-admin .crm-quote-closed{background:#1b2739;border-color:#3b4d63;color:#f4f7fa}
+html[data-theme=dark] .role-admin .crm-lead-title,html[data-theme=dark] .role-admin .crm-list-header h3{color:#f4f7fa}
+html[data-theme=dark] .role-admin .crm-lead-meta{color:#b7c5d6}
+html[data-theme=dark] .role-admin .crm-lead-row:hover{background:#24354a}
+html[data-theme=dark] .role-admin .crm-lead-row.is-new{border-left-color:#ec7382}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -618,24 +727,27 @@ async function load(){
 }
 
 function nav(){
-  if(profile.role!=="admin"){
-    const items=[["agenda","Oggi"],["availability","Agenda"]];
-    return '<nav class="tabs" aria-label="Navigazione tecnico">'+items.map(([v,n])=>'<button class="tab '+(view===v?"active":"")+'" data-v="'+v+'">'+n+'</button>').join("")+'</nav>';
-  }
-  const admin=true;
-  const links=admin
-    ? [["home","Inizio","⌂"],["leads","Clienti","☷"],["quotes","Preventivi","▤"],["agenda","Agenda","▦"],["social","Campagne","◎"],["staff","Tecnici","⚙"]]
-    : [["agenda","Oggi","◷"],["availability","Calendario","▦"]];
-  const tab=([v,n,i])=>`<button type="button" class="tab tab-${v} ${view===v?"active":""}" data-v="${v}" ${view===v?'aria-current="page"':""}><span class="tab-icon" aria-hidden="true">${i}</span><span>${n}</span></button>`;
-  return `<nav class="tabs ${admin?"admin-nav":"tech-nav"}" aria-label="Navigazione CRM">
-    <div class="nav-brand"><span class="nav-logo">E</span><span>EDOGLÒ<small>GESTIONALE</small></span></div>
-    ${links.map(tab).join("")}
-    ${admin?`<button type="button" class="tab tab-more ${["social","staff"].includes(view)?"active":""}" id="navMore" aria-expanded="false"><span class="tab-icon" aria-hidden="true">⋯</span><span>Altro</span></button>
-    <div class="nav-extra" id="navExtra" hidden>
-      <button type="button" data-v="social">◎ Campagne e contatti digitali</button>
-      <button type="button" data-v="staff">⚙ Gestione tecnici</button>
-    </div>`:""}
-  </nav>`;
+ if(profile.role!=="admin"){
+   const items=[["agenda","Oggi"],["availability","Agenda"]];
+   return '<nav class="tabs" aria-label="Navigazione tecnico">'+items.map(([v,n])=>'<button class="tab '+(view===v?"active":"")+'" data-v="'+v+'">'+n+'</button>').join("")+'</nav>';
+ }
+ const items=[
+   ["home","Lead","◉"],
+   ["quotes","Preventivi","▤"],
+   ["agenda","Agenda","▦"],
+   ["leads","Clienti","☷"],
+   ["social","Campagne","◎"],
+   ["staff","Tecnici","⚙"]
+ ];
+ const tab=([v,label,icon])=>`<button type="button" class="tab tab-${v} ${view===v?"active":""}" data-v="${v}" ${view===v?'aria-current="page"':""}><span class="tab-icon" aria-hidden="true">${icon}</span><span>${label}</span></button>`;
+ return `<nav class="tabs admin-nav" aria-label="Navigazione CRM">
+   <div class="nav-brand"><span class="nav-logo">E</span><span>EDOGLÒ<small>GESTIONALE</small></span></div>
+   ${items.slice(0,4).map(tab).join("")}
+   <div class="crm-nav-divider">STRUMENTI</div>
+   ${items.slice(4).map(tab).join("")}
+   <button type="button" class="tab tab-more ${["social","staff"].includes(view)?"active":""}" id="navMore" aria-expanded="false" aria-controls="navExtra"><span class="tab-icon" aria-hidden="true">⋯</span><span>Altro</span></button>
+   <div class="nav-extra" id="navExtra" hidden><button type="button" data-v="social">◎ Campagne</button><button type="button" data-v="staff">⚙ Tecnici</button></div>
+ </nav>`;
 }
 
 function shell(body){
@@ -652,13 +764,16 @@ function shell(body){
           <div class="role-chip">${profile.role==="admin"?"ADMIN":"TECNICO"}${displayName?" · "+esc(displayName):""}</div>
         </div>
       </div>
-      <div class="header-actions"><button class="btn ghost" id="themeToggle" type="button" title="Cambia tema">◐ Tema</button><button class="btn ghost" id="logout">Esci</button></div>
+      <div class="header-actions">${profile.role==="admin"?'<button type="button" class="btn primary crm-add-btn" id="quickAddClient">+ Cliente</button>':""}
+ <details class="crm-header-actions"><summary aria-label="Impostazioni CRM">⋯</summary><div class="crm-header-popup"><button class="btn ghost" id="themeToggle" type="button">◐ Tema</button><button class="btn ghost" id="logout">Esci</button></div></details>
+ </div>
     </div>
     ${body}
   </div>
   ${nav()}`;
   document.querySelector("#themeToggle").onclick=()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";localStorage.setItem("edoglo-theme",dark?"dark":"light");};
   document.querySelector("#logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
+  const quickAdd=document.querySelector("#quickAddClient");if(quickAdd)quickAdd.onclick=()=>leadForm();
   document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
   const more=document.querySelector("#navMore");if(more)more.onclick=()=>{const box=document.querySelector("#navExtra");box.hidden=!box.hidden;more.setAttribute("aria-expanded",String(!box.hidden));};
 
@@ -672,14 +787,14 @@ function render(){
 const quoteLabel={not_required:"Non richiesto",to_prepare:"Preventivo da fare",sent:"Preventivo inviato",accepted:"Accettato",declined:"Non accettato"};
 const originLabel={digital:"Lead online",manual:"Inserito manualmente",technician:"Inserito dal tecnico"};
 function quoteCard(l){
-  const a=appts.find(x=>x.lead_id===l.id);
-  let buttons="<button class=\"btn ghost\" data-open=\""+l.id+"\">Apri cliente</button>";
-  if(a) buttons+="<button class=\"btn blue\" data-quote-detail=\""+l.id+"\">Apri scheda rilievo</button>";
-  if(l.quote_status==="to_prepare") buttons+="<button class=\"btn ok\" data-quote-sent=\""+l.id+"\">Segna inviato</button>";
-  if(l.quote_status==="sent") buttons+="<button class=\"btn ok\" data-quote-accepted=\""+l.id+"\">Accettato</button><button class=\"btn ghost\" data-quote-declined=\""+l.id+"\">Non accettato</button>";
-  const rilievo=a ? "<div class=\"outcome-box\"><b>Rilievo</b>"+esc(a.technician_name||"Tecnico")+" · "+(a.starts_at?fmt(a.starts_at):"")+(a.outcome_notes?" · "+esc(a.outcome_notes):"")+"</div>" : "";
-  return "<div class=\"card\"><div class=\"name\">"+esc(l.full_name)+"</div><div class=\"meta\">"+esc(originLabel[l.origin_type]||"Cliente")+" · "+esc(l.source||"")+"</div><div class=\"meta\">"+esc([l.city,l.province].filter(Boolean).join(" "))+"</div><div style=\"margin-top:6px\">"+esc(l.request||"")+"</div>"+rilievo+"<div class=\"row\" style=\"margin-top:10px\">"+buttons+"</div></div>";
+ const a=appts.find(x=>x.lead_id===l.id);
+ let actions=`<button type="button" class="btn ghost" data-open="${esc(l.id)}">Apri cliente</button>`;
+ if(a)actions+=`<button type="button" class="btn blue" data-quote-detail="${esc(l.id)}">Apri rilievo</button>`;
+ if(l.quote_status==="to_prepare")actions+=`<button type="button" class="btn ok" data-quote-sent="${esc(l.id)}">Segna inviato</button>`;
+ if(l.quote_status==="sent")actions+=`<button type="button" class="btn ok" data-quote-accepted="${esc(l.id)}">Accettato</button><button type="button" class="btn ghost" data-quote-declined="${esc(l.id)}">Non accettato</button>`;
+ return `<article class="crm-quote-row"><div><strong>${esc(l.full_name||"Cliente")}</strong><small>${esc([l.city,l.province].filter(Boolean).join(" · ")||"Comune da verificare")} · ${esc(l.request||l.request_summary||"Richiesta da verificare").slice(0,80)}</small></div><div class="crm-quote-actions">${actions}</div></article>`;
 }
+
 function quoteCards(xs){ return xs.length?xs.map(quoteCard).join(""):"<div class=\"card\">Nessun cliente in questa sezione.</div>"; }
 async function setQuoteStatus(id,status){
   const patch={quote_status:status,updated_at:now()};
@@ -738,13 +853,14 @@ async function quoteDetail(leadId){
   if(sent) sent.onclick=()=>setQuoteStatus(l.id,"sent");
 }
 function quotesView(){
-  const todo=leads.filter(l=>l.quote_status==="to_prepare"),sent=leads.filter(l=>l.quote_status==="sent"),done=leads.filter(l=>["accepted","declined"].includes(l.quote_status));
-  shell(`<div class="page-heading"><div><small>TRATTATIVE</small><h2>Preventivi</h2><p>Prepara le offerte, poi segui quelle in attesa di risposta.</p></div></div>
-    <div class="quote-kpis"><div><strong>${todo.length}</strong><span>Da preparare</span></div><div><strong>${sent.length}</strong><span>In attesa risposta</span></div><div><strong>${done.length}</strong><span>Conclusi</span></div></div>
-    <section class="quote-section"><div class="panel-heading"><div><small>PRIORITÀ</small><h3>Da preparare <em>${todo.length}</em></h3></div></div>${quoteCards(todo)}</section>
-    <section class="quote-section"><div class="panel-heading"><div><small>DA SEGUIRE</small><h3>In attesa di risposta <em>${sent.length}</em></h3></div></div>${quoteCards(sent)}</section>
-    <details class="closed-quotes"><summary>Preventivi conclusi (${done.length})</summary>${quoteCards(done)}</details>`);
-  bindQuoteActions();
+ const todo=leads.filter(l=>l.quote_status==="to_prepare");
+ const sent=leads.filter(l=>l.quote_status==="sent");
+ const closed=leads.filter(l=>["accepted","declined"].includes(l.quote_status));
+ shell(`<div class="crm-simple-head"><div><h2>Preventivi</h2><p>Ogni offerta al suo posto.</p></div></div>
+ <section class="crm-quote-group"><div class="crm-list-header"><h3>Da preparare</h3><span>${todo.length}</span></div>${quoteCards(todo)}</section>
+ <section class="crm-quote-group"><div class="crm-list-header"><h3>In attesa di risposta</h3><span>${sent.length}</span></div>${quoteCards(sent)}</section>
+ <details class="crm-quote-closed"><summary>Preventivi conclusi <span>${closed.length}</span></summary>${quoteCards(closed)}</details>`);
+ bindQuoteActions();
 }
 
 function callbackGroup(l){
@@ -792,61 +908,53 @@ function bindLeadCardActions(){
 }
 
 function home(){
-  const pending=leads.filter(l=>l.status==="new");
-  const callback=leads.filter(l=>l.status==="callback"&&["overdue","today","unscheduled"].includes(callbackGroup(l))).sort((a,b)=>new Date(a.callback_at||0)-new Date(b.callback_at||0));
-  const quotes=leads.filter(l=>l.quote_status==="to_prepare");
-  const today=appts.filter(a=>day(a.starts_at)===day(now())&&a.status!=="cancelled");
-  const upcoming=appts.filter(a=>new Date(a.ends_at)>=new Date()&&a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,5);
-  const tasks=[
-    ...callback.slice(0,3).map(l=>({l,flag:"Richiamare",note:l.callback_at?fmt(l.callback_at):"Orario da programmare",urgency:"urgent"})),
-    ...pending.slice(0,3).map(l=>({l,flag:"Nuovo contatto",note:l.city||"Comune da verificare",urgency:"new"})),
-    ...quotes.slice(0,2).map(l=>({l,flag:"Preventivo",note:"Rilievo da trasformare in offerta",urgency:"quote"}))
-  ].slice(0,6);
-  const date=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Rome"}).format(new Date());
-  const tasksHtml=tasks.length?tasks.map(t=>`<button class="task-row task-${t.urgency}" ${t.urgency==="quote"?'data-go="quotes"':`data-open="${esc(t.l.id)}"`}>
-    <span class="task-dot"></span><span class="task-detail"><strong>${esc(t.l.full_name||"Cliente")}</strong><small>${esc(t.note)}</small></span><span class="task-flag">${t.flag}</span><span class="task-arrow">›</span></button>`).join(""):'<p class="empty-state">Nessun cliente urgente da gestire.</p>';
-  const appointments=upcoming.length?upcoming.map(a=>`<button class="appt-row" data-go="agenda"><span class="appt-day"><b>${esc(new Intl.DateTimeFormat("it-IT",{day:"2-digit",timeZone:"Europe/Rome"}).format(new Date(a.starts_at)))}</b><small>${esc(new Intl.DateTimeFormat("it-IT",{month:"short",timeZone:"Europe/Rome"}).format(new Date(a.starts_at)))}</small></span><span class="task-detail"><strong>${esc(a.client_name||"Cliente")}</strong><small>${fmtTime(a.starts_at)} · ${esc([a.city,a.province].filter(Boolean).join(", ")||"Sopralluogo")}</small></span><span class="task-arrow">›</span></button>`).join(""):'<p class="empty-state">Nessun sopralluogo imminente.</p>';
-  shell(`
-    <div class="dashboard-intro"><div><div class="dashboard-eyebrow">PANORAMICA · ${esc(date)}</div><h2>Il lavoro, finalmente in ordine.</h2><p>Parti dalle priorità. I dettagli rimangono nelle schede dei clienti.</p></div><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
-    <div class="dashboard-kpis">
-      <button class="dashboard-kpi" data-go="leads"><span class="kpi-icon">☷</span><strong>${pending.length}</strong><span>Da contattare</span><small>Apri clienti →</small></button>
-      <button class="dashboard-kpi urgent" data-go="leads"><span class="kpi-icon">◷</span><strong>${callback.length}</strong><span>Richiami urgenti</span><small>Controlla i richiami →</small></button>
-      <button class="dashboard-kpi" data-go="quotes"><span class="kpi-icon">▤</span><strong>${quotes.length}</strong><span>Preventivi da fare</span><small>Apri preventivi →</small></button>
-      <button class="dashboard-kpi" data-go="agenda"><span class="kpi-icon">▦</span><strong>${today.length}</strong><span>Sopralluoghi oggi</span><small>Apri agenda →</small></button>
-    </div>
-    <div class="dashboard-workspace">
-      <section class="dashboard-panel"><div class="panel-heading"><div><small>LE TUE PRIORITÀ</small><h3>Da fare adesso</h3></div><button class="inline-link" data-go="leads">Tutti i clienti →</button></div>${tasksHtml}</section>
-      <section class="dashboard-panel"><div class="panel-heading"><div><small>CALENDARIO</small><h3>Prossimi sopralluoghi</h3></div><button class="inline-link" data-go="agenda">Apri agenda →</button></div>${appointments}</section>
-    </div>
-    <div class="dashboard-extra"><span>Altre attività</span><button class="btn ghost" data-go="social">◎ Campagne</button><button class="btn ghost" data-go="staff">⚙ Tecnici</button></div>
-  `);
-  document.querySelector("#newLead").onclick=()=>leadForm();
-  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{view=b.dataset.go;render();});
-  bindLeadCardActions();
+ const fresh=leads.filter(l=>l.status==="new").sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+ const other=leads.filter(l=>l.status!=="new").sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,18);
+ const callbacks=leads.filter(l=>l.status==="callback").length;
+ shell(`
+   <div class="crm-inbox">
+     <header class="crm-inbox-header">
+       <div><div class="crm-eyebrow">GESTIONE RICHIESTE</div><h2>Lead ricevuti</h2><p>Apri un nominativo per chiamare il cliente o aggiornare la richiesta.</p></div>
+       <span class="crm-count-new">${fresh.length} ${fresh.length===1?"nuovo":"nuovi"}</span>
+     </header>
+     <div class="crm-inbox-toolbar">
+       <button type="button" class="crm-mini-link" data-go="leads">Tutti i clienti (${leads.length}) <span aria-hidden="true">→</span></button>
+       <button type="button" class="crm-mini-link" id="showCallbacks">Richiami (${callbacks}) <span aria-hidden="true">→</span></button>
+     </div>
+     <section class="crm-list-section">
+       <div class="crm-list-header"><h3>Da contattare</h3><span>${fresh.length}</span></div>
+       ${fresh.length?leadCards(fresh):'<p class="crm-empty">Nessun nuovo lead da contattare.</p>'}
+     </section>
+     <section class="crm-list-section">
+       <div class="crm-list-header"><h3>Ultime richieste già gestite</h3><span>${other.length}</span></div>
+       ${other.length?leadCards(other):'<p class="crm-empty">Non ci sono ancora altre richieste.</p>'}
+     </section>
+   </div>
+ `);
+ document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{view=b.dataset.go;render();});
+ document.querySelector("#showCallbacks").onclick=()=>{window.edogloLeadFilter="callback";view="leads";render();};
+ bindLeadCardActions();
 }
 
 function leadCards(xs=leads){
-  return '<div class="lead-grid">'+(xs.map(l=>{
-    const overdue=l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date());
-    const phone=String(l.phone||"").replace(/[^+0-9]/g,"");
-    const canCall=digits(phone).length>=8;
-    const wa=waNumber(phone);
-    return `<article class="card lead-tile ${overdue?"callback-due":""}">
-      <div class="lead-tile-head"><div><div class="name">${esc(l.full_name||"Cliente")}</div><div class="meta">${esc([l.city,l.province].filter(Boolean).join(" · ")||"Comune non indicato")}</div></div>
-      <span class="lead-state lead-state-${esc(l.status||"new")}">${esc(label[l.status]||"Nuovo")}</span></div>
-      <div class="lead-context"><span>${esc(l.source||"Origine non indicata")}</span><span>${fmt(l.created_at)}</span></div>
-      ${callbackTimeHtml(l)}
-      <p class="lead-summary">${esc(l.request_summary||l.request||"Nessun dettaglio sulla richiesta.")}</p>
-      <div class="lead-actions">
-        <button class="btn primary" data-open="${esc(l.id)}">Apri scheda →</button>
-        ${canCall?`<a class="btn blue" href="tel:${esc(phone)}">☎ Chiama</a>`:""}
-        ${canCall&&wa.length>=10?`<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(wa)}">WhatsApp</a>`:""}
-      </div>
-      <details class="lead-status-details"><summary>Aggiorna esito <span>⌄</span></summary><div class="field lead-state-field"><label for="lead-status-${esc(l.id)}">Esito contatto</label>
-        <select id="lead-status-${esc(l.id)}" data-lead-status="${esc(l.id)}">${Object.entries(label).map(([key,value])=>`<option value="${key}" ${l.status===key?"selected":""}>${esc(value)}</option>`).join("")}</select>
-      </div></details>
-    </article>`;
-  }).join("")||'<div class="card empty-state">Nessun cliente in questa sezione.</div>')+'</div>';
+ if(!xs.length)return '<div class="crm-empty">Nessun contatto in questa sezione.</div>';
+ const when=x=>{try{return new Intl.DateTimeFormat("it-IT",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}).format(new Date(x))}catch(e){return ""}};
+ return '<div class="crm-lead-list">'+xs.map(l=>{
+   const key=esc(l.id);
+   const tag=esc(label[l.status]||l.status||"Nuovo");
+   const meta=[l.city,l.province,l.phone].filter(Boolean).join(" · ");
+   const desc=String(l.request_summary||l.request||"").trim().replace(/\s+/g," ").slice(0,150);
+   const source=String(l.source||"").trim();
+   return `<button type="button" class="crm-lead-row ${l.status==="new"?"is-new":""}" data-open="${key}" aria-label="Apri scheda ${esc(l.full_name||"cliente")}">
+     <span class="crm-lead-main">
+       <span class="crm-lead-title">${esc(l.full_name||"Cliente")}</span>
+       <span class="crm-lead-meta">${esc(meta||"Recapiti da verificare")}</span>
+       ${desc?`<span class="crm-lead-request">${esc(desc)}</span>`:""}
+     </span>
+     <span class="crm-lead-end"><span class="crm-lead-time">${esc(when(l.created_at))}</span><span class="crm-lead-status status-${esc(l.status||"new")}">${tag}</span>${source?`<span class="crm-lead-source">${esc(source)}</span>`:""}</span>
+     <span class="crm-lead-chevron" aria-hidden="true">›</span>
+   </button>`;
+ }).join("")+'</div>';
 }
 
 function isCampaignLead(l){
@@ -889,28 +997,27 @@ function socialView(){
 }
 
 function leadsView(){
-  const filters=[["all","Tutti"],["new","Da chiamare"],["callback","Richiami"],["valid","Contattati"],["appointment","Sopralluoghi"],["no_answer","Non risponde"],["other","Altri"]];
-  const counts={all:leads.length,new:leads.filter(l=>l.status==="new").length,callback:leads.filter(l=>l.status==="callback").length,valid:leads.filter(l=>l.status==="valid").length,appointment:leads.filter(l=>l.status==="appointment").length,no_answer:leads.filter(l=>l.status==="no_answer").length};
-  const selected=window.edogloLeadFilter||"all";
-  const match=l=>{
-    const statusOk=selected==="all"||(selected==="other"?!["new","callback","valid","appointment","no_answer"].includes(l.status):l.status===selected);
-    const term=(window.edogloLeadQuery||"").trim().toLocaleLowerCase("it-IT");
-    return statusOk&&[l.full_name,l.phone,l.city,l.province,l.request,l.request_summary,l.source].some(v=>String(v||"").toLocaleLowerCase("it-IT").includes(term));
-  };
-  const getVisible=()=>{
-    const xs=leads.filter(match);
-    xs.sort((a,b)=>selected==="callback"?new Date(a.callback_at||0)-new Date(b.callback_at||0):new Date(b.created_at)-new Date(a.created_at));
-    return xs;
-  };
-  const visible=getVisible();
-  shell(`<div class="page-heading"><div><small>GESTIONE COMMERCIALE</small><h2>Clienti e richieste</h2><p>Trova un contatto, apri la scheda e registra l'esito.</p></div><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
-    <div class="lead-search"><label for="leadSearch">Cerca un cliente</label><input id="leadSearch" type="search" autocomplete="off" placeholder="Nome, telefono o comune…" value="${esc(window.edogloLeadQuery||"")}"><span id="leadCount">${visible.length} contatti</span></div>
-    <div class="lead-filters">${filters.map(([key,name])=>`<button class="btn ${selected===key?"primary":"ghost"}" data-filter="${key}" aria-pressed="${selected===key}">${name} <span class="filter-number">${counts[key]??leads.filter(l=>!["new","callback","valid","appointment","no_answer"].includes(l.status)).length}</span></button>`).join("")}</div>
-    <div id="leadResults">${leadCards(visible)}</div>`);
-  document.querySelector("#newLead").onclick=()=>leadForm();
-  document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{window.edogloLeadFilter=b.dataset.filter;leadsView();});
-  document.querySelector("#leadSearch").oninput=e=>{window.edogloLeadQuery=e.target.value;const xs=getVisible();document.querySelector("#leadCount").textContent=xs.length+" contatti";document.querySelector("#leadResults").innerHTML=leadCards(xs);bindLeadCardActions();};
-  bindLeadCardActions();
+ const filters=[["all","Tutti"],["new","Da chiamare"],["callback","Da richiamare"],["appointment","Sopralluoghi"],["other","Altri esiti"]];
+ const tally=k=>k==="all"?leads.length:k==="other"?leads.filter(l=>!["new","callback","appointment"].includes(l.status)).length:leads.filter(l=>l.status===k).length;
+ const selected=filters.some(x=>x[0]===(window.edogloLeadFilter||"all"))?(window.edogloLeadFilter||"all"):"all";
+ const query=String(window.edogloLeadQuery||"").toLocaleLowerCase("it-IT").trim();
+ const filtered=()=>{
+   return leads.filter(l=>{
+     const good=selected==="all"||(selected==="other"?!["new","callback","appointment"].includes(l.status):l.status===selected);
+     const match=!String(window.edogloLeadQuery||"").trim()||[l.full_name,l.phone,l.city,l.province,l.request,l.request_summary,l.source].some(v=>String(v||"").toLocaleLowerCase("it-IT").includes(String(window.edogloLeadQuery||"").trim().toLocaleLowerCase("it-IT")));
+     return good&&match;
+   }).sort((a,b)=>selected==="callback"?new Date(a.callback_at||0)-new Date(b.callback_at||0):new Date(b.created_at)-new Date(a.created_at));
+ };
+ const visible=filtered();
+ shell(`<div class="crm-page-leads">
+   <div class="crm-simple-head"><div><h2>Clienti</h2><p>Cerca un nominativo oppure filtra per stato.</p></div><span class="crm-total-count">${leads.length} totali</span></div>
+   <input id="leadSearch" class="crm-search-input" type="search" autocomplete="off" placeholder="Cerca nome, telefono, comune…" aria-label="Cerca clienti" value="${esc(window.edogloLeadQuery||"")}">
+   <div class="crm-filters">${filters.map(([key,n])=>`<button type="button" class="crm-filter ${selected===key?"active":""}" data-filter="${key}" aria-pressed="${selected===key}">${n}<span>${tally(key)}</span></button>`).join("")}</div>
+   <div id="leadResults">${leadCards(visible)}</div>
+ </div>`);
+ document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{window.edogloLeadFilter=b.dataset.filter;leadsView();});
+ document.querySelector("#leadSearch").oninput=e=>{window.edogloLeadQuery=e.target.value;document.querySelector("#leadResults").innerHTML=leadCards(filtered());bindLeadCardActions();};
+ bindLeadCardActions();
 }
 
 function leadForm(){
