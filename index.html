@@ -352,7 +352,146 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  } html[data-theme=dark] input::placeholder,html[data-theme=dark] textarea::placeholder{color:#9eacc0} html[data-theme=dark] .notice{background:#3d2b1c;color:#fed7aa;border-color:#86582b} html[data-theme=dark] .error,html[data-theme=dark] .msg.error{background:#57252c;color:#fecaca} html[data-theme=dark] .success,html[data-theme=dark] .msg.success{background:#164e3b;color:#bbf7d0} html[data-theme=dark] .appt-date{background:#1e3552;border-color:#355a83} html[data-theme=dark] .appt-date-main{color:#bfdbfe} html[data-theme=dark] .appt-time{color:#f8fafc} html[data-theme=dark] .today .appt-date{background:#174738;border-color:#297a5a} html[data-theme=dark] .today .appt-date-main{color:#bbf7d0} html[data-theme=dark] .role-technician .appt.today{background:linear-gradient(180deg,#183d32 0,#1b2739 100px)} html[data-theme=dark] .outcome-box{background:#172335;border-color:#42536a} html[data-theme=dark] .outcome-box b{color:#d5e2f2} html[data-theme=dark] .slot{background:#174e3d;color:#bbf7d0} html[data-theme=dark] .slot.busy{background:#29384c;color:#b0bfd2} html[data-theme=dark] .pill{background:#334155;color:#f8fafc} html[data-theme=dark] .product-btn,html[data-theme=dark] .agenda-filter{background:#25344a;color:#f8fafc;border-color:#52647d} html[data-theme=dark] .product-btn.active,html[data-theme=dark] .agenda-filter.active{background:#3b82f6;color:#fff;border-color:#3b82f6} html[data-theme=dark] .session-card.reference{background:#183d32;border-color:#16a34a} html[data-theme=dark] .session-badge.preliminary{background:#164e63;color:#bae6fd} html[data-theme=dark] .session-badge.definitive{background:#423168;color:#ddd6fe} html[data-theme=dark] .callback-panel{background:#3a2d1e;border-color:#a16207} html[data-theme=dark] .callback-time.overdue{color:#fca5a5} html[data-theme=dark] .callback-time.upcoming{color:#fde68a} html[data-theme=dark] .lead-state{background:#334155;color:#f8fafc} html[data-theme=dark] .lead-state-new{background:#624516;color:#fde68a} html[data-theme=dark] .lead-state-callback{background:#652d35;color:#fecaca} html[data-theme=dark] .lead-state-valid,html[data-theme=dark] .lead-state-appointment{background:#164e3b;color:#bbf7d0} html[data-theme=dark] .callback-badge{background:#624516;color:#fde68a} html[data-theme=dark] .appt-status.confirmed,html[data-theme=dark] .appt-status.scheduled{background:#1e3a5f;color:#bfdbfe} html[data-theme=dark] .appt-status.completed{background:#164e3b;color:#bbf7d0} html[data-theme=dark] .appt-status.cancelled{background:#642a31;color:#fecaca} html[data-theme=dark] .appt-status.reschedule{background:#624516;color:#fde68a} html[data-theme=dark] .role-technician .tabs{border-color:#35455d}
 
 html[data-theme=light],html[data-theme=light] body{color-scheme:light}
-</style></head>
+</style><style id="edoglo-ui-v26">
+/* Edoglo CRM: calmer, task-oriented interface. Scoped to admin; technician flows unchanged. */
+:root{--ed-red:#c81d36;--ink:#1d2939;--muted:#667085;--line:#e5e9ef;--panel:#fff;--shadow:0 4px 20px rgba(27,38,56,.04)}
+body{background:#f7f8fa}
+.role-admin .wrap{max-width:1420px}
+.role-admin .top{background:rgba(247,248,250,.96);border-bottom:1px solid #e5e9ef;padding-bottom:14px}
+.role-admin .brand-mark{background:var(--ed-red);box-shadow:none}
+.role-admin .btn.primary{background:var(--ed-red);color:white;box-shadow:none}
+.role-admin .card{border-radius:16px;box-shadow:var(--shadow)}
+.role-admin .tabs{z-index:80}
+.role-admin .tab{display:flex;align-items:center;justify-content:flex-start;gap:11px;font-weight:780}
+.role-admin .tab-icon{font-size:22px;width:24px;text-align:center;line-height:1}
+.role-admin .nav-brand{display:none}
+.role-admin .tab-more{display:none}
+.role-admin .nav-extra[hidden]{display:none!important}
+.role-admin .dashboard-intro{background:#1e2938;color:#fff;border-radius:20px;box-shadow:none;padding:28px}
+.role-admin .dashboard-intro p{font-size:14px;max-width:460px;line-height:1.5}
+.role-admin .dashboard-intro .primary{background:white;color:#1e2938}
+.role-admin .dashboard-eyebrow{color:#f2aab9}
+.role-admin .dashboard-kpis{gap:12px;margin:16px 0 22px}
+.role-admin .dashboard-kpi{padding:18px;border-radius:16px;box-shadow:none;border:1px solid #e5e9ef}
+.role-admin .dashboard-kpi strong{font-size:34px}
+.role-admin .dashboard-kpi>span:not(.kpi-icon){font-size:13px;line-height:1.25}
+.role-admin .dashboard-kpi.urgent{border-left:3px solid #dc7b44}
+.role-admin .kpi-icon{color:var(--ed-red)}
+.role-admin .dashboard-workspace{display:grid;grid-template-columns:1.15fr 1fr;gap:16px}
+.role-admin .dashboard-panel{background:#fff;border:1px solid #e5e9ef;border-radius:17px;padding:19px;min-width:0;box-shadow:var(--shadow)}
+.role-admin .panel-heading{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:13px}
+.role-admin .panel-heading small{color:#b6273a;font-size:10px;font-weight:900;letter-spacing:.1em}
+.role-admin .panel-heading h3{font-size:19px;margin:5px 0 0;letter-spacing:-.025em}
+.role-admin .inline-link{border:0;background:none;color:#a32136;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
+.role-admin .task-row,.role-admin .appt-row{display:flex;align-items:center;gap:10px;width:100%;border:1px solid #ecedf1;background:#fbfcfd;color:#1d2939;padding:12px;border-radius:11px;margin:7px 0;text-align:left;cursor:pointer}
+.role-admin .task-row:hover,.role-admin .appt-row:hover{background:#fff6f7;border-color:#efd2d8}
+.role-admin .task-dot{width:8px;height:8px;border-radius:50%;background:#d8a047;flex:0 0 8px}
+.role-admin .task-urgent .task-dot{background:#c9253b}
+.role-admin .task-quote .task-dot{background:#6583bd}
+.role-admin .task-detail{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.role-admin .task-detail strong{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.role-admin .task-detail small{font-size:11px;color:#708092;line-height:1.35}
+.role-admin .task-flag{font-size:10px;color:#a34232;background:#fff0e9;border-radius:7px;padding:5px 7px;white-space:nowrap}
+.role-admin .task-arrow{font-size:23px;color:#a7b0be}
+.role-admin .appt-day{background:#faecee;color:#af2639;display:flex;flex-direction:column;justify-content:center;align-items:center;border-radius:8px;width:42px;height:45px;flex:0 0 42px}
+.role-admin .appt-day b{font-size:18px}.role-admin .appt-day small{font-size:10px;text-transform:uppercase}
+.role-admin .empty-state{padding:19px;color:#667085;font-size:13px}
+.role-admin .dashboard-extra{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:20px}
+.role-admin .dashboard-extra>span{font-size:12px;color:#667085;font-weight:800;margin-right:5px}
+.role-admin .dashboard-extra .btn{min-height:37px;font-size:12px}
+.role-admin .page-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:9px 0 19px}
+.role-admin .page-heading small{color:#b6273a;font-size:11px;font-weight:900;letter-spacing:.12em}
+.role-admin .page-heading h2{font-size:clamp(25px,3vw,32px);letter-spacing:-.03em;margin:5px 0 6px}
+.role-admin .page-heading p{font-size:13px;color:#667085;margin:0}
+.role-admin .lead-search{display:grid;grid-template-columns:1fr auto;align-items:end;gap:9px;background:white;border:1px solid #e5e9ef;border-radius:14px;padding:14px 16px}
+.role-admin .lead-search label{font-size:12px;font-weight:800;grid-column:1/-1}
+.role-admin .lead-search input{background:white;color:#1d2939;border-radius:10px;border:1px solid #d8e0e8;padding:12px;min-width:0}
+.role-admin .lead-search>span{color:#667085;font-size:12px;padding:11px 0}
+.role-admin .lead-filters{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:7px;margin:12px 0 17px;scrollbar-width:thin;padding-bottom:5px}
+.role-admin .lead-filters .btn{flex:0 0 auto;white-space:nowrap;font-size:12px;padding:9px 11px;min-height:38px;border-radius:99px}
+.role-admin .filter-number{font-size:11px;border-radius:20px;background:rgba(125,143,165,.12);padding:2px 6px}
+.role-admin .lead-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:12px}
+.role-admin .lead-tile{padding:17px}
+.role-admin .lead-tile-head .name{font-size:17px;line-height:1.2}
+.role-admin .lead-tile-head .meta{font-size:12px;margin-top:4px}
+.role-admin .lead-state{font-size:10px;padding:7px 9px}
+.role-admin .lead-context{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 0;border-bottom:1px solid #f0f1f3;color:#7b8797;font-size:11px}
+.role-admin .lead-summary{font-size:13px;line-height:1.5;color:#394658;white-space:normal;max-height:none;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;margin:12px 0 16px}
+.role-admin .lead-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.role-admin .lead-actions .btn{font-size:12px;min-height:42px;border-radius:9px}
+.role-admin .lead-actions .btn[data-open]{grid-column:1/-1}
+.role-admin .lead-actions a{background:#f5f7f9;color:#344054;border:1px solid #e5e9ef}
+.role-admin .lead-status-details{border-top:1px solid #eff0f3;margin-top:13px;padding-top:12px}
+.role-admin .lead-status-details summary{cursor:pointer;display:flex;justify-content:space-between;color:#748095;font-size:12px;font-weight:800}
+.role-admin .lead-status-details .field{margin:10px 0 0}
+.role-admin .lead-status-details select{font-size:14px;min-height:43px}
+.role-admin .quote-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.role-admin .quote-kpis>div{display:flex;flex-direction:column;gap:5px;border:1px solid #e5e9ef;background:#fff;padding:17px;border-radius:14px}
+.role-admin .quote-kpis strong{font-size:27px}.role-admin .quote-kpis span{font-size:12px;color:#667085}
+.role-admin .quote-section{margin:20px 0}
+.role-admin .quote-section em{font-style:normal;font-size:12px;background:#fbeaec;color:#9e2c43;border-radius:20px;padding:4px 8px}
+.role-admin .closed-quotes{background:#fff;border:1px solid #e5e9ef;border-radius:14px;padding:15px;margin:24px 0}
+.role-admin .closed-quotes summary{font-weight:800;cursor:pointer}.role-admin .closed-quotes>.card{margin-top:14px}
+@media(min-width:920px){
+ .role-admin .wrap{max-width:calc(100% - 230px);margin:0 0 0 230px;padding:22px 30px 55px}
+ .role-admin .tabs{position:fixed;top:0;bottom:0;left:0;right:auto;width:230px;display:flex;flex-direction:column;gap:4px;justify-content:flex-start;align-items:stretch;padding:24px 12px;background:#1d2939;border:0;box-shadow:none;border-radius:0;overflow-y:auto;backdrop-filter:none}
+ .role-admin .nav-brand{display:flex;align-items:center;gap:10px;color:white;font-size:17px;font-weight:950;margin:5px 7px 35px;letter-spacing:.04em}
+ .role-admin .nav-brand small{display:block;color:#b4c0d2;font-size:9px;letter-spacing:.16em;margin-top:5px}
+ .role-admin .nav-logo{display:grid;place-items:center;background:#c81d36;width:40px;height:40px;border-radius:11px;font-size:22px}
+ .role-admin .tab{flex:0 0 auto;width:100%;justify-content:flex-start;color:#bac6d4;padding:13px;font-size:14px;min-height:46px;border-radius:10px}
+ .role-admin .tab.active{background:#c81d36;color:#fff;box-shadow:none}
+ .role-admin .tab-more,.role-admin .nav-extra{display:none!important}
+}
+@media(max-width:919px){
+ .role-admin .wrap{padding:12px 13px calc(110px + env(safe-area-inset-bottom));max-width:760px}
+ .role-admin .tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;top:auto;bottom:0;left:0;right:0;gap:3px;overflow:visible;justify-content:stretch;background:#fff;padding:8px 5px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -5px 25px rgba(24,37,52,.08);border-radius:0}
+ .role-admin .tab{display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;flex:0 0 auto;min-width:0;width:100%;font-size:10px;min-height:55px;padding:6px 2px}
+ .role-admin .tab-icon{font-size:21px}
+ .role-admin .tab.active{background:#fbeaec;color:#ab2036;box-shadow:none}
+ .role-admin .tab-social,.role-admin .tab-staff{display:none}
+ .role-admin .tab-more{display:flex}
+ .role-admin .nav-extra:not([hidden]){position:absolute;bottom:calc(100% + 8px);right:10px;display:grid;gap:3px;background:white;border:1px solid #e5e9ef;border-radius:13px;box-shadow:0 14px 30px rgba(25,35,49,.18);padding:8px;width:230px}
+ .role-admin .nav-extra button{background:#fff;text-align:left;border:0;border-radius:8px;padding:11px;font-weight:800;color:#344054}
+ .role-admin .dashboard-workspace{grid-template-columns:1fr}
+ .role-admin .dashboard-intro{padding:22px}
+ .role-admin .dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .role-admin .dashboard-kpi{padding:14px}
+}
+@media(max-width:560px){
+ .role-admin .top .sub{font-size:10px}
+ .role-admin .brand-mark{width:38px;height:38px}
+ .role-admin .brand h1{font-size:18px}
+ .role-admin .header-actions{gap:3px}
+ .role-admin .header-actions .btn{font-size:11px;padding:7px;min-height:38px}
+ .role-admin .dashboard-intro{flex-direction:column;align-items:stretch}
+ .role-admin .dashboard-intro h2{font-size:24px}
+ .role-admin .dashboard-intro .btn{width:100%}
+ .role-admin .dashboard-kpis{gap:8px}
+ .role-admin .dashboard-kpi{padding:12px}
+ .role-admin .dashboard-kpi strong{font-size:28px}
+ .role-admin .dashboard-kpi>span:not(.kpi-icon){font-size:12px}
+ .role-admin .dashboard-kpi small{font-size:10px}
+ .role-admin .dashboard-panel{padding:15px}
+ .role-admin .task-row,.role-admin .appt-row{padding:10px 8px;gap:8px}
+ .role-admin .task-flag{font-size:9px;padding:4px 5px}
+ .role-admin .page-heading{flex-direction:column;align-items:stretch}
+ .role-admin .lead-search{display:flex;flex-direction:column;align-items:stretch}
+ .role-admin .lead-search>span{padding:0}
+ .role-admin .quote-kpis{gap:7px}
+ .role-admin .quote-kpis>div{padding:12px 8px}
+ .role-admin .quote-kpis strong{font-size:22px}
+ .role-admin .quote-kpis span{font-size:10px}
+}
+html[data-theme=dark] .role-admin .dashboard-panel,
+html[data-theme=dark] .role-admin .quote-kpis>div,
+html[data-theme=dark] .role-admin .closed-quotes,
+html[data-theme=dark] .role-admin .lead-search{background:#1b2739;border-color:#35455d}
+html[data-theme=dark] .role-admin .top{background:rgba(16,24,39,.94);border-color:#35455d}
+html[data-theme=dark] .role-admin .task-row,html[data-theme=dark] .role-admin .appt-row{background:#253449;border-color:#35455d;color:#fff}
+html[data-theme=dark] .role-admin .task-detail small,html[data-theme=dark] .role-admin .lead-summary{color:#b8c5d7}
+html[data-theme=dark] .role-admin .lead-search input{background:#111d2e;border-color:#52647d;color:#fff}
+</style>
+</head>
 <body>
 <div id="app"></div>
 <script type="module">
@@ -479,10 +618,20 @@ async function load(){
 }
 
 function nav(){
-  const items=profile.role==="admin"
-    ? [["home","Home"],["social","Social & Campagne"],["leads","Clienti"],["quotes","Preventivi"],["agenda","Agenda"],["staff","Tecnici"]]
-    : [["agenda","Oggi"],["availability","Agenda"]];
-  return `<div class="tabs">${items.map(([v,n])=>`<button class="tab ${view===v?"active":""}" data-v="${v}">${n}</button>`).join("")}</div>`;
+  const admin=profile.role==="admin";
+  const links=admin
+    ? [["home","Inizio","⌂"],["leads","Clienti","☷"],["quotes","Preventivi","▤"],["agenda","Agenda","▦"],["social","Campagne","◎"],["staff","Tecnici","⚙"]]
+    : [["agenda","Oggi","◷"],["availability","Calendario","▦"]];
+  const tab=([v,n,i])=>`<button type="button" class="tab tab-${v} ${view===v?"active":""}" data-v="${v}" ${view===v?'aria-current="page"':""}><span class="tab-icon" aria-hidden="true">${i}</span><span>${n}</span></button>`;
+  return `<nav class="tabs ${admin?"admin-nav":"tech-nav"}" aria-label="Navigazione CRM">
+    <div class="nav-brand"><span class="nav-logo">E</span><span>EDOGLÒ<small>GESTIONALE</small></span></div>
+    ${links.map(tab).join("")}
+    ${admin?`<button type="button" class="tab tab-more ${["social","staff"].includes(view)?"active":""}" id="navMore" aria-expanded="false"><span class="tab-icon" aria-hidden="true">⋯</span><span>Altro</span></button>
+    <div class="nav-extra" id="navExtra" hidden>
+      <button type="button" data-v="social">◎ Campagne e contatti digitali</button>
+      <button type="button" data-v="staff">⚙ Gestione tecnici</button>
+    </div>`:""}
+  </nav>`;
 }
 
 function shell(body){
@@ -507,6 +656,8 @@ function shell(body){
   document.querySelector("#themeToggle").onclick=()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";localStorage.setItem("edoglo-theme",dark?"dark":"light");};
   document.querySelector("#logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
   document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
+  const more=document.querySelector("#navMore");if(more)more.onclick=()=>{const box=document.querySelector("#navExtra");box.hidden=!box.hidden;more.setAttribute("aria-expanded",String(!box.hidden));};
+  const more=document.querySelector("#navMore");if(more)more.onclick=()=>{const extra=document.querySelector("#navExtra");extra.hidden=!extra.hidden;more.setAttribute("aria-expanded",String(!extra.hidden));};
 }
 
 function render(){
@@ -583,10 +734,12 @@ async function quoteDetail(leadId){
   if(sent) sent.onclick=()=>setQuoteStatus(l.id,"sent");
 }
 function quotesView(){
-  const todo=leads.filter(l=>l.quote_status==="to_prepare");
-  const sent=leads.filter(l=>l.quote_status==="sent");
-  const closed=leads.filter(l=>["accepted","declined"].includes(l.quote_status));
-  shell("<div class=\"section\">Preventivi da fare</div><div class=\"notice\">Il cliente entra qui automaticamente quando il tecnico salva il rilievo.</div>"+quoteCards(todo)+"<div class=\"section\">Preventivi inviati</div>"+quoteCards(sent)+"<div class=\"section\">Chiusi</div>"+quoteCards(closed));
+  const todo=leads.filter(l=>l.quote_status==="to_prepare"),sent=leads.filter(l=>l.quote_status==="sent"),done=leads.filter(l=>["accepted","declined"].includes(l.quote_status));
+  shell(`<div class="page-heading"><div><small>TRATTATIVE</small><h2>Preventivi</h2><p>Prepara le offerte, poi segui quelle in attesa di risposta.</p></div></div>
+    <div class="quote-kpis"><div><strong>${todo.length}</strong><span>Da preparare</span></div><div><strong>${sent.length}</strong><span>In attesa risposta</span></div><div><strong>${done.length}</strong><span>Conclusi</span></div></div>
+    <section class="quote-section"><div class="panel-heading"><div><small>PRIORITÀ</small><h3>Da preparare <em>${todo.length}</em></h3></div></div>${quoteCards(todo)}</section>
+    <section class="quote-section"><div class="panel-heading"><div><small>DA SEGUIRE</small><h3>In attesa di risposta <em>${sent.length}</em></h3></div></div>${quoteCards(sent)}</section>
+    <details class="closed-quotes"><summary>Preventivi conclusi (${done.length})</summary>${quoteCards(done)}</details>`);
   bindQuoteActions();
 }
 
@@ -635,42 +788,61 @@ function bindLeadCardActions(){
 }
 
 function home(){
- const dueCallbacks=leads.filter(l=>l.status==="callback"&&["overdue","today","unscheduled"].includes(callbackGroup(l)));
- const today=appts.filter(a=>day(a.starts_at)===day(now())&&a.status!=="cancelled").length;
- const digital=leads.filter(isCampaignLead).length;
- const upcoming=appts.filter(a=>new Date(a.ends_at)>=new Date()&&a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,4);
- shell(`
- <div class="dashboard-intro"><div><div class="dashboard-eyebrow">PANNELLO AMMINISTRATORE</div><h2>La tua attività, a colpo d'occhio</h2><p>Contatti, richiami e sopralluoghi: tutto quello che serve oggi.</p></div><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
- <div class="dashboard-kpis">
-  <button class="dashboard-kpi" data-go="leads"><span class="kpi-icon">✉</span><strong>${leads.filter(l=>l.status==="new").length}</strong><span>Da contattare</span><small>Apri clienti →</small></button>
-  <button class="dashboard-kpi urgent" data-go="leads"><span class="kpi-icon">☎</span><strong>${dueCallbacks.length}</strong><span>Richiami da fare</span><small>Apri richiami →</small></button>
-  <button class="dashboard-kpi" data-go="social"><span class="kpi-icon">◎</span><strong>${digital}</strong><span>Contatti digitali</span><small>Social e campagne →</small></button>
-  <button class="dashboard-kpi" data-go="quotes"><span class="kpi-icon">▤</span><strong>${leads.filter(l=>l.quote_status==="to_prepare").length}</strong><span>Preventivi da fare</span><small>Apri preventivi →</small></button>
- </div>
- <div class="dashboard-shortcuts"><button class="btn ghost" data-go="agenda">▦ Agenda completa</button><button class="btn ghost" data-go="social">◎ Campagne pubblicitarie</button><button class="btn ghost" data-go="leads">☷ Tutti i clienti</button></div>
- <div class="dashboard-heading"><div><div class="section">Richiami prioritari</div><p>Clienti da ricontattare, ordinati per urgenza.</p></div></div>
- ${callbackBoard()}
- <div class="dashboard-heading"><div><div class="section">Prossimi sopralluoghi</div><p>${today} programmati oggi · i prossimi appuntamenti</p></div><button class="btn ghost" data-go="agenda">Vedi agenda</button></div>
- ${apptCards(upcoming)}
- <details class="dashboard-more"><summary>Visualizza disponibilità dei prossimi 7 giorni</summary>${richAgendaHtml(7)}</details>
- `);
- document.querySelector("#newLead").onclick=()=>leadForm();
- document.querySelectorAll("[data-go]").forEach(x=>x.onclick=()=>{view=x.dataset.go;render();});
- bindLeadCardActions();bindAgendaActions();
+  const pending=leads.filter(l=>l.status==="new");
+  const callback=leads.filter(l=>l.status==="callback"&&["overdue","today","unscheduled"].includes(callbackGroup(l))).sort((a,b)=>new Date(a.callback_at||0)-new Date(b.callback_at||0));
+  const quotes=leads.filter(l=>l.quote_status==="to_prepare");
+  const today=appts.filter(a=>day(a.starts_at)===day(now())&&a.status!=="cancelled");
+  const upcoming=appts.filter(a=>new Date(a.ends_at)>=new Date()&&a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,5);
+  const tasks=[
+    ...callback.slice(0,3).map(l=>({l,flag:"Richiamare",note:l.callback_at?fmt(l.callback_at):"Orario da programmare",urgency:"urgent"})),
+    ...pending.slice(0,3).map(l=>({l,flag:"Nuovo contatto",note:l.city||"Comune da verificare",urgency:"new"})),
+    ...quotes.slice(0,2).map(l=>({l,flag:"Preventivo",note:"Rilievo da trasformare in offerta",urgency:"quote"}))
+  ].slice(0,6);
+  const date=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Rome"}).format(new Date());
+  const tasksHtml=tasks.length?tasks.map(t=>`<button class="task-row task-${t.urgency}" ${t.urgency==="quote"?'data-go="quotes"':`data-open="${esc(t.l.id)}"`}>
+    <span class="task-dot"></span><span class="task-detail"><strong>${esc(t.l.full_name||"Cliente")}</strong><small>${esc(t.note)}</small></span><span class="task-flag">${t.flag}</span><span class="task-arrow">›</span></button>`).join(""):'<p class="empty-state">Nessun cliente urgente da gestire.</p>';
+  const appointments=upcoming.length?upcoming.map(a=>`<button class="appt-row" data-go="agenda"><span class="appt-day"><b>${esc(new Intl.DateTimeFormat("it-IT",{day:"2-digit",timeZone:"Europe/Rome"}).format(new Date(a.starts_at)))}</b><small>${esc(new Intl.DateTimeFormat("it-IT",{month:"short",timeZone:"Europe/Rome"}).format(new Date(a.starts_at)))}</small></span><span class="task-detail"><strong>${esc(a.client_name||"Cliente")}</strong><small>${fmtTime(a.starts_at)} · ${esc([a.city,a.province].filter(Boolean).join(", ")||"Sopralluogo")}</small></span><span class="task-arrow">›</span></button>`).join(""):'<p class="empty-state">Nessun sopralluogo imminente.</p>';
+  shell(`
+    <div class="dashboard-intro"><div><div class="dashboard-eyebrow">PANORAMICA · ${esc(date)}</div><h2>Il lavoro, finalmente in ordine.</h2><p>Parti dalle priorità. I dettagli rimangono nelle schede dei clienti.</p></div><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
+    <div class="dashboard-kpis">
+      <button class="dashboard-kpi" data-go="leads"><span class="kpi-icon">☷</span><strong>${pending.length}</strong><span>Da contattare</span><small>Apri clienti →</small></button>
+      <button class="dashboard-kpi urgent" data-go="leads"><span class="kpi-icon">◷</span><strong>${callback.length}</strong><span>Richiami urgenti</span><small>Controlla i richiami →</small></button>
+      <button class="dashboard-kpi" data-go="quotes"><span class="kpi-icon">▤</span><strong>${quotes.length}</strong><span>Preventivi da fare</span><small>Apri preventivi →</small></button>
+      <button class="dashboard-kpi" data-go="agenda"><span class="kpi-icon">▦</span><strong>${today.length}</strong><span>Sopralluoghi oggi</span><small>Apri agenda →</small></button>
+    </div>
+    <div class="dashboard-workspace">
+      <section class="dashboard-panel"><div class="panel-heading"><div><small>LE TUE PRIORITÀ</small><h3>Da fare adesso</h3></div><button class="inline-link" data-go="leads">Tutti i clienti →</button></div>${tasksHtml}</section>
+      <section class="dashboard-panel"><div class="panel-heading"><div><small>CALENDARIO</small><h3>Prossimi sopralluoghi</h3></div><button class="inline-link" data-go="agenda">Apri agenda →</button></div>${appointments}</section>
+    </div>
+    <div class="dashboard-extra"><span>Altre attività</span><button class="btn ghost" data-go="social">◎ Campagne</button><button class="btn ghost" data-go="staff">⚙ Tecnici</button></div>
+  `);
+  document.querySelector("#newLead").onclick=()=>leadForm();
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{view=b.dataset.go;render();});
+  bindLeadCardActions();
 }
+
 function leadCards(xs=leads){
   return '<div class="lead-grid">'+(xs.map(l=>{
-    const due=l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date());
-    const phone=l.phone||"";
-    return `<article class="card lead-tile ${due?"callback-due":""}">
-      <div class="lead-tile-head"><div><div class="name">${esc(l.full_name)}</div><div class="meta">${esc(l.city||"Comune non indicato")} · ${esc(l.source||"")}</div></div><span class="lead-state lead-state-${esc(l.status||"new")}">${esc(label[l.status]||l.status||"Nuovo")}</span></div>
-      <div class="meta">${fmt(l.created_at)}${l.callback_at?" · Richiamo: "+fmt(l.callback_at):""}</div>
+    const overdue=l.status==="callback"&&(!l.callback_at||new Date(l.callback_at)<=new Date());
+    const phone=String(l.phone||"").replace(/[^+0-9]/g,"");
+    const canCall=digits(phone).length>=8;
+    const wa=waNumber(phone);
+    return `<article class="card lead-tile ${overdue?"callback-due":""}">
+      <div class="lead-tile-head"><div><div class="name">${esc(l.full_name||"Cliente")}</div><div class="meta">${esc([l.city,l.province].filter(Boolean).join(" · ")||"Comune non indicato")}</div></div>
+      <span class="lead-state lead-state-${esc(l.status||"new")}">${esc(label[l.status]||"Nuovo")}</span></div>
+      <div class="lead-context"><span>${esc(l.source||"Origine non indicata")}</span><span>${fmt(l.created_at)}</span></div>
       ${callbackTimeHtml(l)}
-      <div class="lead-summary">${esc(l.request_summary||l.request||"Nessuna richiesta specificata")}</div>
-      <div class="lead-actions"><a class="btn blue" href="tel:${esc(phone)}">Chiama</a><a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${waNumber(phone)}">WhatsApp</a><button class="btn ghost" data-open="${l.id}">Scheda</button></div>
-      <div class="field lead-state-field"><label for="lead-status-${l.id}">Esito contatto</label><select id="lead-status-${l.id}" data-lead-status="${l.id}">${Object.entries(label).map(([key,value])=>`<option value="${key}" ${l.status===key?"selected":""}>${esc(value)}</option>`).join("")}</select></div>
+      <p class="lead-summary">${esc(l.request_summary||l.request||"Nessun dettaglio sulla richiesta.")}</p>
+      <div class="lead-actions">
+        <button class="btn primary" data-open="${esc(l.id)}">Apri scheda →</button>
+        ${canCall?`<a class="btn blue" href="tel:${esc(phone)}">☎ Chiama</a>`:""}
+        ${canCall&&wa.length>=10?`<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(wa)}">WhatsApp</a>`:""}
+      </div>
+      <details class="lead-status-details"><summary>Aggiorna esito <span>⌄</span></summary><div class="field lead-state-field"><label for="lead-status-${esc(l.id)}">Esito contatto</label>
+        <select id="lead-status-${esc(l.id)}" data-lead-status="${esc(l.id)}">${Object.entries(label).map(([key,value])=>`<option value="${key}" ${l.status===key?"selected":""}>${esc(value)}</option>`).join("")}</select>
+      </div></details>
     </article>`;
-  }).join("")||'<div class="card">Nessun cliente in questa sezione.</div>')+'</div>';
+  }).join("")||'<div class="card empty-state">Nessun cliente in questa sezione.</div>')+'</div>';
 }
 
 function isCampaignLead(l){
@@ -713,18 +885,30 @@ function socialView(){
 }
 
 function leadsView(){
-  const statuses=[["all","Tutti"],["new","Da chiamare"],["callback","Da richiamare"],["valid","Contattati"],["appointment","Sopralluoghi"],["no_answer","Non risponde"],["other","Altri esiti"]];
+  const filters=[["all","Tutti"],["new","Da chiamare"],["callback","Richiami"],["valid","Contattati"],["appointment","Sopralluoghi"],["no_answer","Non risponde"],["other","Altri"]];
   const counts={all:leads.length,new:leads.filter(l=>l.status==="new").length,callback:leads.filter(l=>l.status==="callback").length,valid:leads.filter(l=>l.status==="valid").length,appointment:leads.filter(l=>l.status==="appointment").length,no_answer:leads.filter(l=>l.status==="no_answer").length};
   const selected=window.edogloLeadFilter||"all";
-  const visible=leads.filter(l=>selected==="all"|| (selected==="other"?!["new","callback","valid","appointment","no_answer"].includes(l.status):l.status===selected));
-  shell('<div class="row"><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>'+
-    '<div class="section">Gestione contatti</div><div class="notice">Seleziona uno stato per vedere subito chi chiamare, chi hai già contattato e chi richiamare.</div>'+
-    '<div class="lead-filters">'+statuses.map(([key,name])=>`<button class="btn ${selected===key?"primary":"ghost"}" data-filter="${key}">${name} ${counts[key]??leads.filter(l=>!["new","callback","valid","appointment","no_answer"].includes(l.status)).length}</button>`).join("")+'</div>'+
-    (selected==="callback"?callbackBoard():leadCards(visible)));
+  const match=l=>{
+    const statusOk=selected==="all"||(selected==="other"?!["new","callback","valid","appointment","no_answer"].includes(l.status):l.status===selected);
+    const term=(window.edogloLeadQuery||"").trim().toLocaleLowerCase("it-IT");
+    return statusOk&&[l.full_name,l.phone,l.city,l.province,l.request,l.request_summary,l.source].some(v=>String(v||"").toLocaleLowerCase("it-IT").includes(term));
+  };
+  const getVisible=()=>{
+    const xs=leads.filter(match);
+    xs.sort((a,b)=>selected==="callback"?new Date(a.callback_at||0)-new Date(b.callback_at||0):new Date(b.created_at)-new Date(a.created_at));
+    return xs;
+  };
+  const visible=getVisible();
+  shell(`<div class="page-heading"><div><small>GESTIONE COMMERCIALE</small><h2>Clienti e richieste</h2><p>Trova un contatto, apri la scheda e registra l'esito.</p></div><button class="btn primary" id="newLead">+ Nuovo cliente</button></div>
+    <div class="lead-search"><label for="leadSearch">Cerca un cliente</label><input id="leadSearch" type="search" autocomplete="off" placeholder="Nome, telefono o comune…" value="${esc(window.edogloLeadQuery||"")}"><span id="leadCount">${visible.length} contatti</span></div>
+    <div class="lead-filters">${filters.map(([key,name])=>`<button class="btn ${selected===key?"primary":"ghost"}" data-filter="${key}" aria-pressed="${selected===key}">${name} <span class="filter-number">${counts[key]??leads.filter(l=>!["new","callback","valid","appointment","no_answer"].includes(l.status)).length}</span></button>`).join("")}</div>
+    <div id="leadResults">${leadCards(visible)}</div>`);
   document.querySelector("#newLead").onclick=()=>leadForm();
   document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{window.edogloLeadFilter=b.dataset.filter;leadsView();});
+  document.querySelector("#leadSearch").oninput=e=>{window.edogloLeadQuery=e.target.value;const xs=getVisible();document.querySelector("#leadCount").textContent=xs.length+" contatti";document.querySelector("#leadResults").innerHTML=leadCards(xs);bindLeadCardActions();};
   bindLeadCardActions();
 }
+
 function leadForm(){
   shell(`
     <div class="section">Nuovo cliente / lead</div>
