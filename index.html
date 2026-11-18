@@ -657,7 +657,7 @@ function shell(body){
   document.querySelector("#logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
   document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
   const more=document.querySelector("#navMore");if(more)more.onclick=()=>{const box=document.querySelector("#navExtra");box.hidden=!box.hidden;more.setAttribute("aria-expanded",String(!box.hidden));};
-  const more=document.querySelector("#navMore");if(more)more.onclick=()=>{const extra=document.querySelector("#navExtra");extra.hidden=!extra.hidden;more.setAttribute("aria-expanded",String(!extra.hidden));};
+
 }
 
 function render(){
