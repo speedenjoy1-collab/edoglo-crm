@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-19-v35">
+  <meta name="edoglo-build" content="2026-11-19-v36">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -1045,6 +1045,83 @@ html[data-theme=dark] .role-technician .tech-job-instructions p{color:#e2e8f0}
 html[data-theme=dark] .role-technician .tech-job-survey{background:#3b82f6}
 html[data-theme=dark] .role-technician .tech-job-address-warning{background:#453522;border-color:#996a37}
 </style>
+<style id="tech-layout-v36">
+/* v36: agenda tecnico leggibile; archivio eseguiti separato */
+.role-technician .tech-home-hero .tech-hero-date{
+ color:#fff!important;opacity:1!important;font-size:18px!important;
+ font-weight:850;line-height:1.35;margin-top:11px;text-transform:capitalize
+}
+.role-technician .tech-job-top{align-items:flex-start}
+.role-technician .tech-job-datetime{display:flex;align-items:center;gap:13px;flex-wrap:wrap;flex:1;min-width:0}
+.role-technician .tech-job-date-block{
+ display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:12px;
+ background:#fff1f3;border:1px solid #efc9d0;min-width:0;flex:1 1 155px
+}
+.role-technician .tech-job-date-block .tech-job-weekday{
+ font-size:14px;font-weight:900;line-height:1.2;color:#932638;text-transform:capitalize
+}
+.role-technician .tech-job-date-block strong.tech-job-date{
+ font-size:20px;font-weight:950;letter-spacing:-.03em;line-height:1.2;color:#8e182e;white-space:normal
+}
+.role-technician .tech-job-time-block{
+ display:flex;flex-direction:column;align-items:center;gap:3px;flex:0 0 auto;min-width:72px
+}
+.role-technician .tech-job-time-label{font-size:10px;font-weight:900;letter-spacing:.1em;color:#6b7789}
+.role-technician .tech-job-time-block strong.tech-job-clock{
+ font-size:29px;font-weight:900;color:#182638;line-height:1.1
+}
+.role-technician .tech-job-top .appt-status{flex:0 0 auto;max-width:100%;font-size:10px}
+.role-technician .tabs{max-width:700px;justify-content:space-evenly}
+.role-technician .tab{flex:1 1 0;min-width:0;max-width:220px;white-space:nowrap}
+.role-technician .tech-archive-heading{margin:13px 0 18px}
+.role-technician .tech-archive-eyebrow{font-size:10px;letter-spacing:.12em;font-weight:900;color:#a22338}
+.role-technician .tech-archive-heading h2{font-size:27px;margin:6px 0 4px;letter-spacing:-.03em}
+.role-technician .tech-archive-heading p{font-size:13px;color:#66768a;line-height:1.5;margin:0}
+.role-technician .tech-completed-search{
+ background:#fff;border:1px solid #dfe5ec;padding:14px;border-radius:13px;display:grid;gap:8px
+}
+.role-technician .tech-completed-search label{font-size:12px;font-weight:900;color:#3b495c}
+.role-technician .tech-completed-search input{
+ width:100%;font-size:15px;min-height:44px;border:1px solid #cfd8e2;border-radius:10px;
+ padding:10px 12px;background:#fff;color:#1c2939
+}
+.role-technician #techCompletedCount{font-size:11px;color:#67778a}
+.role-technician .tech-completed-results{display:grid;gap:12px;margin:14px 0}
+.role-technician .tech-completed-card{
+ background:#fff;border:1px solid #dfe5ec;border-radius:15px;padding:17px;box-shadow:0 4px 20px rgba(25,38,54,.04)
+}
+.role-technician .tech-completed-top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px;border-bottom:1px solid #edf0f4;padding-bottom:10px}
+.role-technician .tech-completed-top strong{font-size:15px;color:#29415d;text-transform:capitalize}
+.role-technician .tech-completed-top span{font-size:12px;font-weight:900;color:#65758a}
+.role-technician .tech-completed-card h3{font-size:19px;margin:14px 0 3px}
+.role-technician .tech-completed-kind{font-size:12px;color:#6c798a}
+.role-technician .tech-completed-address{font-size:14px;line-height:1.45;font-weight:750;margin:12px 0;color:#274936;overflow-wrap:anywhere}
+.role-technician .tech-completed-note{font-size:13px;line-height:1.45;background:#f6f8fb;padding:10px;border-radius:10px}
+.role-technician .tech-completed-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.role-technician .tech-completed-actions .btn{flex:1;min-height:44px}
+@media(max-width:560px){
+ .role-technician .tech-home-hero .tech-hero-date{font-size:16px!important}
+ .role-technician .tech-job-datetime{gap:8px}
+ .role-technician .tech-job-date-block{padding:10px;flex:1 1 140px}
+ .role-technician .tech-job-date-block strong.tech-job-date{font-size:19px}
+ .role-technician .tech-job-time-block strong.tech-job-clock{font-size:27px}
+ .role-technician .tech-job-top .appt-status{font-size:9px;padding:6px}
+ .role-technician .tab{font-size:13px;padding:11px 6px}
+}
+html[data-theme=dark] .role-technician .tech-job-date-block{background:#40242e;border-color:#864352}
+html[data-theme=dark] .role-technician .tech-job-date-block .tech-job-weekday{color:#ffb4c0}
+html[data-theme=dark] .role-technician .tech-job-date-block strong.tech-job-date{color:#fff}
+html[data-theme=dark] .role-technician .tech-job-time-block strong.tech-job-clock{color:#fff}
+html[data-theme=dark] .role-technician .tech-completed-search,
+html[data-theme=dark] .role-technician .tech-completed-card{background:#1b2739;border-color:#394c61}
+html[data-theme=dark] .role-technician .tech-completed-top{border-color:#35455d}
+html[data-theme=dark] .role-technician .tech-completed-top strong,
+html[data-theme=dark] .role-technician .tech-completed-search label{color:#e3ebf5}
+html[data-theme=dark] .role-technician .tech-completed-address{color:#b7ebd7}
+html[data-theme=dark] .role-technician .tech-archive-heading p{color:#b2c0d2}
+html[data-theme=dark] .role-technician .tech-completed-search input{background:#111d2e;border-color:#52647d;color:#fff}
+html[data-theme=dark] .role-technician .tech-completed-note{background:#223349}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -1170,7 +1247,7 @@ async function load(){
 
 function nav(){
  if(profile.role!=="admin"){
-   const items=[["agenda","Oggi"],["availability","Agenda"]];
+   const items=[["agenda","Oggi"],["availability","Calendario"],["completed","Eseguiti"]];
    return '<nav class="tabs" aria-label="Navigazione tecnico">'+items.map(([v,n])=>'<button class="tab '+(view===v?"active":"")+'" data-v="'+v+'">'+n+'</button>').join("")+'</nav>';
  }
  const items=[
@@ -1201,7 +1278,7 @@ function shell(body){
       <div class="brand">
         <div class="brand-mark">E</div>
         <div class="brand-copy">
-          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v35</span>':""}</h1>
+          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v36</span>':""}</h1>
           <div class="sub">${profile.role==="admin"?"Gestione commerciale e sopralluoghi":"Agenda e rilievi tecnici"}</div>
           <div class="role-chip">${profile.role==="admin"?"ADMIN":"TECNICO"}${displayName?" · "+esc(displayName):""}</div>
         </div>
@@ -1224,7 +1301,7 @@ function shell(body){
 
 function render(){
   if(profile.role==="technician" && view==="home") view="agenda";
-  ({home,social:socialView,leads:leadsView,quotes:quotesView,agenda,availability,staff}[view]||home)();
+  ({home,social:socialView,leads:leadsView,quotes:quotesView,agenda,availability,completed:completedVisits,staff}[view]||home)();
 }
 
 const quoteLabel={not_required:"Non richiesto",to_prepare:"Preventivo da fare",sent:"Preventivo inviato",accepted:"Accettato",declined:"Non accettato"};
@@ -1556,6 +1633,9 @@ function appointmentAddress(a){
  return {street,city,province,full,ready,map:ready?"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(full):""};
 }
 
+function technicianDate(x,opts){
+ return new Intl.DateTimeFormat("it-IT",{timeZone:"Europe/Rome",...opts}).format(new Date(x));
+}
 function apptCards(xs){
  return xs.map(a=>{
   const loc=appointmentAddress(a);
@@ -1565,7 +1645,16 @@ function apptCards(xs){
   const status=esc(apptLabel[a.status]||a.status);
   if(profile.role==="technician"){
    return `<article class="card tech-job-card ${today?"today":""}">
-    <div class="tech-job-top"><div class="tech-job-datetime"><strong>${fmtTime(a.starts_at)}</strong><span>${fmtDate(a.starts_at)}</span></div><span class="appt-status ${esc(a.status)}">${status}</span></div>
+    <div class="tech-job-top">
+     <div class="tech-job-datetime">
+       <div class="tech-job-date-block">
+         <span class="tech-job-weekday">${esc(technicianDate(a.starts_at,{weekday:"long"}))}</span>
+         <strong class="tech-job-date">${esc(technicianDate(a.starts_at,{day:"numeric",month:"long",year:"numeric"}))}</strong>
+       </div>
+       <div class="tech-job-time-block"><span class="tech-job-time-label">ORE</span><strong class="tech-job-clock">${fmtTime(a.starts_at)}</strong></div>
+     </div>
+     <span class="appt-status ${esc(a.status)}">${status}</span>
+   </div>
     <h3 class="tech-job-client">${esc(a.client_name||"Cliente")}</h3>
     <div class="tech-job-kind">${esc(visitLabel(a.activity_type))}</div>
     <div class="tech-job-address ${loc.ready?"":"tech-job-address-warning"}">
@@ -1601,19 +1690,61 @@ function apptCards(xs){
  }).join("")||'<div class="card">Nessun appuntamento programmato.</div>';
 }
 
+function completedVisits(){
+ if(profile.role!=="technician"){view="agenda";return agenda();}
+ const completed=appts.filter(a=>a.technician_id===user.id&&a.status==="completed").sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
+ const search=String(window.edogloCompletedSearch||"");
+ shell(`<header class="tech-archive-heading">
+    <div class="tech-archive-eyebrow">STORICO INTERVENTI</div>
+    <h2>Interventi eseguiti</h2>
+    <p>Gli interventi conclusi sono conservati qui, separati dagli appuntamenti da svolgere.</p>
+   </header>
+   <div class="tech-completed-search"><label for="techCompletedQuery">Cerca tra gli eseguiti</label>
+     <input type="search" autocomplete="off" id="techCompletedQuery" value="${esc(search)}" placeholder="Nome cliente, comune o indirizzo">
+     <span id="techCompletedCount"></span>
+   </div>
+   <div id="techCompletedResults" class="tech-completed-results"></div>
+ `);
+ const renderList=()=>{
+   const q=String(window.edogloCompletedSearch||"").toLocaleLowerCase("it-IT").trim();
+   const items=completed.filter(a=>{
+     const l=leads.find(x=>x.id===a.lead_id);
+     return [a.client_name,a.phone,a.address,a.city,a.province,a.activity_type,l?.address,l?.city,l?.phone].some(x=>String(x||"").toLocaleLowerCase("it-IT").includes(q));
+   });
+   document.querySelector("#techCompletedCount").textContent=items.length+" interventi";
+   document.querySelector("#techCompletedResults").innerHTML=items.length?items.map(a=>{
+     const loc=appointmentAddress(a);
+     const phone=String(a.phone||leads.find(l=>l.id===a.lead_id)?.phone||"").trim();
+     const date=technicianDate(a.starts_at,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+     return `<article class="tech-completed-card">
+       <div class="tech-completed-top"><strong>${esc(date)}</strong><span>ore ${fmtTime(a.starts_at)}</span></div>
+       <h3>${esc(a.client_name||"Cliente")}</h3>
+       <div class="tech-completed-kind">${esc(visitLabel(a.activity_type))}</div>
+       <p class="tech-completed-address">⌖ ${esc(loc.full||"Indirizzo non indicato")}</p>
+       ${a.outcome_notes?`<div class="tech-completed-note"><strong>Esito:</strong> ${esc(a.outcome_notes)}</div>`:""}
+       <div class="tech-completed-actions">
+         <button class="btn ghost" data-measures="${esc(a.id)}">▤ Apri rilievo</button>
+         ${phone?`<a class="btn ghost" href="tel:${esc(phone)}">☎ Chiama</a>`:""}
+       </div>
+     </article>`;
+   }).join(""):'<div class="tech-empty">Nessun intervento eseguito trovato.</div>';
+   bindAgendaActions();
+ };
+ document.querySelector("#techCompletedQuery").oninput=e=>{window.edogloCompletedSearch=e.target.value;renderList();};
+ renderList();
+}
+
 function agenda(){
  if(profile.role==="technician"){
   const todayKey=day(now());
-  const own=appts.filter(a=>a.technician_id===user.id&&a.status!=="cancelled");
+  const own=appts.filter(a=>a.technician_id===user.id&&a.status!=="cancelled"&&a.status!=="completed");
   const today=own.filter(a=>day(a.starts_at)===todayKey).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
-  const todo=today.filter(a=>a.status!=="completed");
-  const finished=today.filter(a=>a.status==="completed");
+  const todo=today;
   const upcoming=own.filter(a=>day(a.starts_at)>todayKey&&new Date(a.ends_at)>=new Date()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,3);
-  const past=own.filter(a=>day(a.starts_at)<todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)).slice(0,10);
   const labelDay=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Rome"}).format(new Date());
   shell(`
    <header class="tech-home-hero">
-     <div><span class="tech-eyebrow">AGENDA DI ANTONIO</span><h2>Oggi</h2><p>${esc(labelDay)}</p></div>
+     <div><span class="tech-eyebrow">AGENDA DI ANTONIO</span><h2>Oggi</h2><p class="tech-hero-date">${esc(labelDay)}</p></div>
      <div class="tech-home-count"><strong>${todo.length}</strong><span>${todo.length===1?"intervento da fare":"interventi da fare"}</span></div>
    </header>
    <div class="tech-home-menu">
@@ -1622,11 +1753,7 @@ function agenda(){
    </div>
    <div class="tech-section-heading"><h3>Da fare oggi</h3><span>${todo.length}</span></div>
    ${todo.length?apptCards(todo):'<div class="tech-empty">Nessun intervento da eseguire oggi.</div>'}
-   ${finished.length?`<details class="tech-history" ><summary>✓ Interventi completati oggi <span>${finished.length}</span></summary>${apptCards(finished)}</details>`:""}
    ${upcoming.length?`<div class="tech-section-heading"><h3>Prossimi appuntamenti</h3><span>${upcoming.length}</span></div>${apptCards(upcoming)}`:""}
-   <details class="tech-history"><summary>Storico visite e rilievi <span>${past.length}</span></summary>
-     ${past.length?past.map(a=>`<div class="tech-history-line"><div><strong>${esc(a.client_name||"Cliente")}</strong><small>${fmtDate(a.starts_at)} · ${esc(visitLabel(a.activity_type))}</small><small>⌖ ${esc(appointmentAddress(a).full||"Indirizzo non indicato")}</small></div><button class="btn ghost" data-measures="${esc(a.id)}">Apri rilievo</button></div>`).join(""):'<p class="tech-empty">Nessun rilievo precedente.</p>'}
-   </details>
   `);
   document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
   document.querySelector("#openWeek").onclick=()=>{view="availability";render();};
@@ -2567,7 +2694,7 @@ function technicianCalendar(){
   const dateKey=d=>day(d.toISOString()),today=day(now());
   if(!weekMonday)weekMonday=monday(new Date());
   const dates=Array.from({length:7},(_,i)=>{const d=new Date(weekMonday);d.setDate(d.getDate()+i);return d;});
-  const own=appts.filter(a=>a.technician_id===user.id&&a.status!=="cancelled");
+  const own=appts.filter(a=>a.technician_id===user.id&&a.status!=="cancelled"&&a.status!=="completed");
   const ownAbsences=unavail.filter(u=>u.technician_id===user.id);
   const upcomingAbsences=ownAbsences.filter(u=>new Date(u.ends_at)>new Date()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
   const absencesFor=d=>ownAbsences.filter(u=>new Date(u.starts_at)<new Date(d.getTime()+86400000)&&new Date(u.ends_at)>d);
@@ -2585,7 +2712,7 @@ function technicianCalendar(){
     <div class="field"><label for="weekJump">Vai alla settimana della data</label><input type="date" id="weekJump" value="${dateKey(weekMonday)}"></div>
     <div class="row">${visibleDates.map(d=>{const key=dateKey(d),n=own.filter(a=>day(a.starts_at)===key).length;return `<button type="button" class="btn ${key===today?"ok":"ghost"}" data-weekday="${key}">${new Intl.DateTimeFormat("it-IT",{weekday:"short",day:"2-digit",timeZone:"Europe/Rome"}).format(d)} (${n})</button>`}).join("")}</div>
   </div>
-  <form class="card" id="weekFind"><label for="weekSearch"><b>Cerca su tutto lo storico appuntamenti</b></label><div class="row" style="margin-top:8px"><input id="weekSearch" style="flex:1;min-width:160px;padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink)" value="${esc(weekSearch)}" placeholder="Nome cliente, indirizzo, telefono"><button class="btn primary">Cerca</button><button class="btn ghost" type="button" id="weekReset">Cancella</button></div></form>
+  <form class="card" id="weekFind"><label for="weekSearch"><b>Cerca negli appuntamenti da gestire</b></label><div class="row" style="margin-top:8px"><input id="weekSearch" style="flex:1;min-width:160px;padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink)" value="${esc(weekSearch)}" placeholder="Nome cliente, indirizzo, telefono"><button class="btn primary">Cerca</button><button class="btn ghost" type="button" id="weekReset">Cancella</button></div></form>
   ${q?`<div class="section">Risultati (${results.length})</div>${results.length?apptCards(results):'<div class="card">Nessun appuntamento trovato.</div>'}`:visibleDates.map(d=>{const key=dateKey(d),xs=own.filter(a=>day(a.starts_at)===key).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));return `<div id="week-day-${key}" style="scroll-margin-top:110px"><div class="section">${fmtDate(d)} · ${xs.length} appuntamenti</div>${absencesFor(d).map(u=>`<div class="crm-absence-tech"><strong>⛔ Indisponibile</strong><span>${fmtTime(u.starts_at)}–${fmtTime(u.ends_at)}</span><small>${esc(u.reason||"Assenza")}</small></div>`).join("")}${xs.length?apptCards(xs):'<div class="meta">Nessun appuntamento.</div>'}</div>`}).join("")}`);
   document.querySelector("#weekPrev").onclick=()=>{weekMonday.setDate(weekMonday.getDate()-7);weekSearch="";technicianCalendar()};
   document.querySelector("#weekNext").onclick=()=>{weekMonday.setDate(weekMonday.getDate()+7);weekSearch="";technicianCalendar()};
