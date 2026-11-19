@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-19-v31">
+  <meta name="edoglo-build" content="2026-11-19-v32">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -829,6 +829,7 @@ html[data-theme=dark] .role-admin .crm-agenda-date-tile strong{color:#edf2fc}
  .role-admin .crm-agenda-event-heading strong{font-size:13px}
 }
 </style>
+<style id="edoglo-absence-v32">.role-admin .crm-absence-page{max-width:1060px}.role-admin .crm-absence-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.role-admin .crm-absence-heading h2{font-size:24px;margin:6px 0}.role-admin .crm-absence-help{font-size:12px;color:#718094}.role-admin .crm-absence-page h3{font-size:14px;margin:20px 0 8px}.role-admin .crm-absence-list{background:#fff;border:1px solid #e5e9ef;border-radius:11px;overflow:hidden}.role-admin .crm-unavailability-item{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:13px;border-bottom:1px solid #edf0f4}.role-admin .crm-unavailability-item:last-child{border:0}.role-admin .crm-unavailability-item>div{display:grid;gap:5px;min-width:0}.role-admin .crm-unavailability-item strong{font-size:13px}.role-admin .crm-unavailability-item span{font-size:12px;color:#59687b}.role-admin .crm-unavailability-item small{font-size:11px;color:#748295;overflow-wrap:anywhere}.role-admin .crm-old-absence{margin-top:16px;font-size:12px;color:#64748b}.role-admin .crm-old-absence summary{cursor:pointer;margin-bottom:10px}.role-admin .crm-absence-inline{display:grid;gap:4px;grid-column:2;padding:9px;border:1px solid #f3d0d6;background:#fff2f4;border-radius:7px;font-size:11px;color:#a0283f}.role-technician .crm-absence-tech{display:grid;gap:5px;background:#fff2f4;border:1px solid #f3d0d6;border-radius:11px;padding:12px;margin:11px 0;color:#a0283f;font-size:12px;overflow-wrap:anywhere}@media(max-width:1040px){.role-admin .crm-absence-inline{grid-column:1}}@media(max-width:580px){.role-admin .crm-absence-heading{align-items:stretch;flex-direction:column}.role-admin .crm-absence-heading .btn{min-height:46px}.role-admin .crm-unavailability-item{gap:7px}.role-admin .crm-unavailability-item .btn{min-height:44px}}html[data-theme=dark] .role-admin .crm-absence-list{background:#1b2739;border-color:#35455d}html[data-theme=dark] .role-admin .crm-unavailability-item span{color:#c7d3e1}</style>
 </head>
 <body>
 <div id="app"></div>
@@ -936,21 +937,18 @@ function unauthorized(){
 }
 
 async function load(){
-  const [l,a]=await Promise.all([
+  const [l,a,u]=await Promise.all([
     sb.from("leads").select("*").order("created_at",{ascending:false}),
-    sb.from("appointments").select("*").order("starts_at",{ascending:true})
+    sb.from("appointments").select("*").order("starts_at",{ascending:true}),
+    sb.from("technician_unavailability").select("*").order("starts_at",{ascending:true})
   ]);
-  if(l.error) throw l.error;
-  if(a.error) throw a.error;
-  leads=l.data||[];
-  appts=a.data||[];
-
+  if(l.error)throw l.error;
+  if(a.error)throw a.error;
+  if(u.error)throw new Error("Errore caricamento indisponibilità: "+u.error.message);
+  leads=l.data||[];appts=a.data||[];unavail=u.data||[];
   if(profile.role==="admin"){
-    const t=await sb.from("staff_profiles")
-      .select("id,full_name,email,role,active")
-      .eq("role","technician")
-      .eq("active",true)
-      .order("full_name");
+    const t=await sb.from("staff_profiles").select("id,full_name,email,role,active").eq("role","technician").eq("active",true).order("full_name");
+    if(t.error)throw t.error;
     techs=t.data||[];
   }
 }
@@ -988,7 +986,7 @@ function shell(body){
       <div class="brand">
         <div class="brand-mark">E</div>
         <div class="brand-copy">
-          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v31</span>':""}</h1>
+          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v32</span>':""}</h1>
           <div class="sub">${profile.role==="admin"?"Gestione commerciale e sopralluoghi":"Agenda e rilievi tecnici"}</div>
           <div class="role-chip">${profile.role==="admin"?"ADMIN":"TECNICO"}${displayName?" · "+esc(displayName):""}</div>
         </div>
@@ -1971,17 +1969,15 @@ function minutesLabel(ms){
   return h?(h+"h"+(mm?" "+mm+"m":"")):(m+" min");
 }
 
-function freeRangesForDay(d,items){
-  const start=new Date(d); start.setHours(9,0,0,0);
-  const end=new Date(d); end.setHours(18,0,0,0);
-  let cursor=start; const out=[];
-  const sorted=items.filter(a=>a.status!=="cancelled").map(a=>({s:new Date(a.starts_at),e:new Date(a.ends_at)})).filter(x=>x.e>start&&x.s<end).sort((a,b)=>a.s-b.s);
-  for(const x of sorted){
-    const xs=x.s<start?start:x.s; const xe=x.e>end?end:x.e;
-    if(xs>cursor) out.push([new Date(cursor),new Date(xs)]);
-    if(xe>cursor) cursor=xe;
-  }
-  if(cursor<end) out.push([new Date(cursor),new Date(end)]);
+function freeRangesForDay(d,items,techId=null){
+  const start=new Date(d);start.setHours(9,0,0,0);
+  const end=new Date(d);end.setHours(18,0,0,0);
+  const booked=items.filter(a=>a.status!=="cancelled"&&(!techId||a.technician_id===techId)).map(a=>({s:new Date(a.starts_at),e:new Date(a.ends_at)}));
+  const absent=unavail.filter(u=>!techId||u.technician_id===techId).map(u=>({s:new Date(u.starts_at),e:new Date(u.ends_at)}));
+  const sorted=[...booked,...absent].filter(x=>x.e>start&&x.s<end).sort((a,b)=>a.s-b.s);
+  const out=[];let cursor=start;
+  for(const x of sorted){const xs=x.s<start?start:x.s,xe=x.e>end?end:x.e;if(xs>cursor)out.push([new Date(cursor),new Date(xs)]);if(xe>cursor)cursor=xe;}
+  if(cursor<end)out.push([new Date(cursor),new Date(end)]);
   return out.filter(([a,b])=>b-a>=30*60000);
 }
 
@@ -1995,10 +1991,12 @@ function richAgendaHtml(days=7){
    const dayText=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Rome"}).format(d);
    const dateText=new Intl.DateTimeFormat("it-IT",{day:"2-digit",month:"2-digit",timeZone:"Europe/Rome"}).format(d);
    const dayName=new Intl.DateTimeFormat("it-IT",{weekday:"short",timeZone:"Europe/Rome"}).format(d);
+   const absences=unavail.filter(u=>new Date(u.starts_at)<new Date(d.getTime()+86400000)&&new Date(u.ends_at)>d);
    const frees=freeRangesForDay(d,items);
+   const absencesHtml=absences.map(u=>`<div class="crm-absence-inline"><strong>⛔ ${esc(techs.find(t=>t.id===u.technician_id)?.full_name||"Tecnico")} indisponibile</strong><span>${fmtTime(u.starts_at)}–${fmtTime(u.ends_at)} · ${esc(u.reason||"Assenza")}</span></div>`).join("");
    const availability=`<details class="crm-availability"><summary>Disponibilità ${frees.length?"· "+frees.length+" fasce":"· nessuna fascia libera"}</summary><div class="crm-free-slots">${frees.length?frees.map(([a,b])=>`<span class="crm-slot">${fmtTime(a)}–${fmtTime(b)}</span>`).join(""):'<span class="crm-muted-slot">Nessuna fascia libera di almeno 30 minuti.</span>'}</div></details>`;
    if(!items.length){
-     return `<section class="crm-agenda-day crm-agenda-empty"><div class="crm-agenda-date"><span class="crm-agenda-date-tile"><small>${esc(dayName)}</small><strong>${dateText.slice(0,2)}</strong></span><div><h3>${esc(dayText)} ${i===0?'<span class="crm-today-chip">OGGI</span>':""}</h3><p>Libero · nessun appuntamento</p></div></div>${availability}</section>`;
+     return `<section class="crm-agenda-day crm-agenda-empty"><div class="crm-agenda-date"><span class="crm-agenda-date-tile"><small>${esc(dayName)}</small><strong>${dateText.slice(0,2)}</strong></span><div><h3>${esc(dayText)} ${i===0?'<span class="crm-today-chip">OGGI</span>':""}</h3><p>Libero · nessun appuntamento</p></div></div>${absencesHtml}${availability}</section>`;
    }
    const events=items.map(a=>{
      const start=new Date(a.starts_at),end=new Date(a.ends_at);
@@ -2023,7 +2021,7 @@ function richAgendaHtml(days=7){
         </div>
       </article>`;
    }).join("");
-   return `<section class="crm-agenda-day crm-agenda-busy"><div class="crm-agenda-date"><span class="crm-agenda-date-tile"><small>${esc(dayName)}</small><strong>${dateText.slice(0,2)}</strong></span><div><h3>${esc(dayText)} ${i===0?'<span class="crm-today-chip">OGGI</span>':""}</h3><p>${items.length} ${items.length===1?"appuntamento":"appuntamenti"}</p></div></div><div class="crm-agenda-event-list">${events}</div>${availability}</section>`;
+   return `<section class="crm-agenda-day crm-agenda-busy"><div class="crm-agenda-date"><span class="crm-agenda-date-tile"><small>${esc(dayName)}</small><strong>${dateText.slice(0,2)}</strong></span><div><h3>${esc(dayText)} ${i===0?'<span class="crm-today-chip">OGGI</span>':""}</h3><p>${items.length} ${items.length===1?"appuntamento":"appuntamenti"}</p></div></div><div class="crm-agenda-event-list">${events}</div>${absencesHtml}${availability}</section>`;
  }).join("");
  return `<div class="crm-compact-agenda">${head}${rows}</div>`;
 }
@@ -2034,10 +2032,14 @@ function technicianCalendar(){
   if(!weekMonday)weekMonday=monday(new Date());
   const dates=Array.from({length:7},(_,i)=>{const d=new Date(weekMonday);d.setDate(d.getDate()+i);return d;});
   const own=appts.filter(a=>a.technician_id===user.id);
+  const ownAbsences=unavail.filter(u=>u.technician_id===user.id);
+  const upcomingAbsences=ownAbsences.filter(u=>new Date(u.ends_at)>new Date()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+  const absencesFor=d=>ownAbsences.filter(u=>new Date(u.starts_at)<new Date(d.getTime()+86400000)&&new Date(u.ends_at)>d);
   const q=weekSearch.toLocaleLowerCase("it").trim();
   const results=q?own.filter(a=>{const l=leads.find(l=>l.id===a.lead_id);return [a.client_name,a.phone,a.address,a.city,a.province,a.notes,a.activity_type,l?.full_name,l?.phone,l?.address].filter(Boolean).join(" ").toLocaleLowerCase("it").includes(q)}).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)):[];
   shell(`<div class="section">Agenda settimanale di Antonio</div>
-  <div class="notice">Puoi consultare settimane passate e future, recuperare indirizzi e telefoni e riaprire le misure dei tuoi clienti.</div>
+  <div class="notice">Consulta gli appuntamenti, i rilievi e le giornate di indisponibilità.</div>
+  ${upcomingAbsences.length?`<div class="crm-absence-tech"><strong>Prossima indisponibilità</strong><span>${fmt(upcomingAbsences[0].starts_at)} → ${fmt(upcomingAbsences[0].ends_at)}</span><small>${esc(upcomingAbsences[0].reason||"Assenza")}</small></div>`:""}
   <div class="card"><div class="row" style="justify-content:space-between;align-items:center">
     <button class="btn ghost" id="weekPrev">← Settimana prima</button>
     <b>${fmtDate(dates[0])} – ${fmtDate(dates[6])}</b>
@@ -2047,7 +2049,7 @@ function technicianCalendar(){
     <div class="row">${dates.map(d=>{const key=dateKey(d),n=own.filter(a=>day(a.starts_at)===key).length;return `<button type="button" class="btn ${key===today?"ok":"ghost"}" data-weekday="${key}">${new Intl.DateTimeFormat("it-IT",{weekday:"short",day:"2-digit",timeZone:"Europe/Rome"}).format(d)} (${n})</button>`}).join("")}</div>
   </div>
   <form class="card" id="weekFind"><label for="weekSearch"><b>Cerca su tutto lo storico appuntamenti</b></label><div class="row" style="margin-top:8px"><input id="weekSearch" style="flex:1;min-width:160px;padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink)" value="${esc(weekSearch)}" placeholder="Nome cliente, indirizzo, telefono"><button class="btn primary">Cerca</button><button class="btn ghost" type="button" id="weekReset">Cancella</button></div></form>
-  ${q?`<div class="section">Risultati (${results.length})</div>${results.length?apptCards(results):'<div class="card">Nessun appuntamento trovato.</div>'}`:dates.map(d=>{const key=dateKey(d),xs=own.filter(a=>day(a.starts_at)===key).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));return `<div id="week-day-${key}" style="scroll-margin-top:110px"><div class="section">${fmtDate(d)} · ${xs.length} appuntamenti</div>${xs.length?apptCards(xs):'<div class="meta">Nessun appuntamento.</div>'}</div>`}).join("")}`);
+  ${q?`<div class="section">Risultati (${results.length})</div>${results.length?apptCards(results):'<div class="card">Nessun appuntamento trovato.</div>'}`:dates.map(d=>{const key=dateKey(d),xs=own.filter(a=>day(a.starts_at)===key).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));return `<div id="week-day-${key}" style="scroll-margin-top:110px"><div class="section">${fmtDate(d)} · ${xs.length} appuntamenti</div>${absencesFor(d).map(u=>`<div class="crm-absence-tech"><strong>⛔ Indisponibile</strong><span>${fmtTime(u.starts_at)}–${fmtTime(u.ends_at)}</span><small>${esc(u.reason||"Assenza")}</small></div>`).join("")}${xs.length?apptCards(xs):'<div class="meta">Nessun appuntamento.</div>'}</div>`}).join("")}`);
   document.querySelector("#weekPrev").onclick=()=>{weekMonday.setDate(weekMonday.getDate()-7);weekSearch="";technicianCalendar()};
   document.querySelector("#weekNext").onclick=()=>{weekMonday.setDate(weekMonday.getDate()+7);weekSearch="";technicianCalendar()};
   document.querySelector("#weekToday").onclick=()=>{weekMonday=monday(new Date());weekSearch="";technicianCalendar()};
@@ -2063,17 +2065,19 @@ function availability(){
   bindAgendaActions();
 }
 function staff(){
-  shell(`
-    <div class="section">Tecnici attivi</div>
-    ${techs.map(t=>`<div class="card"><div class="name">${esc(t.full_name)}</div><div class="meta">${esc(t.email)}</div></div>`).join("") || '<div class="card">Nessun tecnico attivo.</div>'}
-    <div class="row"><button class="btn primary" id="addUn">+ Indisponibilità</button></div>
-    <div class="section">Indisponibilità</div>
-    ${unavail.filter(u=>new Date(u.ends_at)>=new Date()).map(u=>`<div class="card"><div class="name">🚫 ${fmt(u.starts_at)} → ${fmt(u.ends_at)}</div><div class="meta">${esc(u.reason||"Indisponibile")}</div><div class="row" style="margin-top:8px"><button class="btn bad" data-del-un="${u.id}">Elimina</button></div></div>`).join("") || '<div class="card">Nessuna indisponibilità futura.</div>'}
-  `);
-  document.querySelector("#addUn").onclick=()=>unavailabilityForm();
-  document.querySelectorAll("[data-del-un]").forEach(b=>b.onclick=()=>deleteUnavailability(b.dataset.delUn));
+ const future=unavail.filter(u=>new Date(u.ends_at)>new Date()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+ const past=unavail.filter(u=>new Date(u.ends_at)<=new Date()).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
+ const card=u=>{
+   const tech=techs.find(t=>t.id===u.technician_id);
+   return `<div class="crm-unavailability-item"><div><strong>⛔ ${esc(tech?.full_name||"Tecnico")}</strong><span>${fmt(u.starts_at)} → ${fmt(u.ends_at)}</span><small>${esc(u.reason||"Indisponibile")}</small></div><button type="button" class="btn ghost" data-del-un="${esc(u.id)}">Elimina</button></div>`;
+ };
+ shell(`<div class="crm-absence-page"><div class="crm-absence-heading"><h2>Tecnici e indisponibilità</h2><button class="btn primary" id="addUn">+ Indisponibilità</button></div>
+ <p class="crm-absence-help">Le assenze restano visibili anche quando sono programmate per i mesi successivi.</p>
+ <section><h3>Indisponibilità future (${future.length})</h3><div class="crm-absence-list">${future.length?future.map(card).join(""):'<p class="crm-empty">Nessuna indisponibilità futura.</p>'}</div></section>
+ <details class="crm-old-absence"><summary>Indisponibilità passate (${past.length})</summary><div class="crm-absence-list">${past.map(card).join("")||'<p class="crm-empty">Nessuna indisponibilità passata.</p>'}</div></details></div>`);
+ document.querySelector("#addUn").onclick=()=>unavailabilityForm();
+ document.querySelectorAll("[data-del-un]").forEach(b=>b.onclick=()=>deleteUnavailability(b.dataset.delUn));
 }
-
 
 function initCrmUpdateNotification(){
   const currentBuild=document.querySelector('meta[name="edoglo-build"]')?.getAttribute('content')||"";
