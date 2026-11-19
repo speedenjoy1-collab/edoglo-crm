@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-18-v27">
+  <meta name="edoglo-build" content="2026-11-19-v28">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -600,6 +600,78 @@ html[data-theme=dark] .role-admin .crm-lead-meta{color:#b7c5d6}
 html[data-theme=dark] .role-admin .crm-lead-row:hover{background:#24354a}
 html[data-theme=dark] .role-admin .crm-lead-row.is-new{border-left-color:#ec7382}
 </style>
+<style id="edoglo-crm-v28">
+/* v28: customer record, repeated visits, simple appointment times */
+.role-admin .crm-client-page,.role-admin .crm-visit-wizard{max-width:1000px;margin:0 auto 50px}
+.role-admin .crm-link-back{padding:6px 0;margin-bottom:11px;border:0;background:none;color:#687789;font-size:12px;cursor:pointer;font-weight:800}
+.role-admin .crm-client-heading,.role-admin .crm-agenda-header{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:8px 0 13px}
+.role-admin .crm-client-heading h2,.role-admin .crm-visit-wizard h2,.role-admin .crm-agenda-header h2{font-size:clamp(22px,3vw,28px);margin:4px 0;letter-spacing:-.04em}
+.role-admin .crm-hint{font-size:12px;color:#7a879a;line-height:1.5;margin:6px 0}
+.role-admin .crm-client-actions{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0 17px}
+.role-admin .crm-client-actions .btn{font-size:12px;padding:8px 11px;border-radius:9px;min-height:37px}
+.role-admin .crm-client-panels{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.role-admin .crm-light-panel{background:#fff;border:1px solid #e5e9ef;border-radius:13px;padding:16px;margin-bottom:13px}
+.role-admin .crm-light-panel h3{font-size:14px;margin:0 0 9px}
+.role-admin .crm-info-row{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid #eef0f4}
+.role-admin .crm-info-row:last-child{border:0}
+.role-admin .crm-info-row span{color:#8894a3;font-size:11px}
+.role-admin .crm-info-row strong{font-size:12px;overflow-wrap:anywhere;font-weight:700}
+.role-admin .crm-detail-text{font-size:12px;line-height:1.6;white-space:pre-wrap;margin:0}
+.role-admin .crm-soft-count{font-size:11px;color:#8390a0;background:#eef1f5;border-radius:8px;padding:3px 7px}
+.role-admin .crm-visit-history{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid #edf0f4}
+.role-admin .crm-visit-history:last-child{border:0}
+.role-admin .crm-visit-history>div{display:grid;gap:5px}
+.role-admin .crm-visit-history strong{font-size:12px}
+.role-admin .crm-visit-history small{font-size:11px;color:#8190a2}
+.role-admin .crm-visit-history p{font-size:11px;line-height:1.4;white-space:pre-wrap;margin:0}
+.role-admin .crm-visit-history .btn{min-height:30px;padding:5px 10px;font-size:11px}
+.role-admin .crm-client-advanced{border:1px solid #e5e9ef;border-radius:12px;background:#fff;padding:13px 16px;margin-top:12px}
+.role-admin .crm-client-advanced>summary{font-size:12px;font-weight:800;cursor:pointer}
+.role-admin .crm-callback{padding:10px 0}
+.role-admin .crm-callback h4{font-size:13px;margin:3px 0 6px}
+.role-admin .crm-callback-form{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.role-admin .crm-callback-form .field{margin:5px 0}
+.role-admin .crm-callback-form textarea{min-height:60px}
+.role-admin .crm-inline-actions{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:8px}
+.role-admin .crm-callback-form .crm-inline-actions{grid-column:1/-1}
+.role-admin .crm-inline-actions>span{font-size:12px;font-weight:800}
+.role-admin .crm-inline-actions .btn{font-size:11px;min-height:35px;padding:7px 10px}
+.role-admin .crm-delete-options{margin-top:12px;font-size:11px;color:#8793a3}
+.role-admin .crm-delete-options .btn{margin-top:8px;font-size:11px}
+.role-admin .crm-visit-wizard{max-width:750px}
+.role-admin .crm-appointment-form{display:grid;gap:4px;margin-top:14px}
+.role-admin .crm-appointment-form .field{margin:6px 0}
+.role-admin .crm-appointment-form label,.role-admin .crm-light-panel>label{display:block;font-weight:800;font-size:12px;margin-bottom:5px}
+.role-admin .crm-appointment-form input,.role-admin .crm-appointment-form select,.role-admin .crm-appointment-form textarea,.role-admin .crm-input{background:#fff;color:#1d2939;min-height:43px;border:1px solid #d5deea;border-radius:9px;padding:10px 11px;font-size:13px;width:100%}
+.role-admin .crm-form-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.role-admin .crm-form-subhead{font-size:11px;color:#a53d4f;font-weight:900;letter-spacing:.05em;margin:13px 0 2px}
+.role-admin .crm-appointment-form button[type=submit]{margin-top:9px}
+.role-admin .crm-client-choice{display:flex;justify-content:space-between;gap:15px;align-items:center;background:#fff;color:#192437;border:0;border-bottom:1px solid #edf0f4;width:100%;padding:12px 3px;text-align:left;cursor:pointer}
+.role-admin .crm-client-choice:hover{background:#fff7f8}
+.role-admin .crm-client-choice>span{display:grid;gap:3px}
+.role-admin .crm-client-choice strong{font-size:12px}
+.role-admin .crm-client-choice small{font-size:11px;color:#8995a3}
+.role-admin #clientPickerResult{max-height:520px;overflow-y:auto;margin-top:9px}
+.role-admin .crm-agenda-header p{margin:0}
+.role-admin .crm-appt-top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.crm-appt-purpose{font-size:13px;margin:9px 0 5px}
+.crm-appt-address{font-size:12px;overflow-wrap:anywhere}
+.crm-appt-note{margin:10px 0;background:#eaf4ff;border-left:3px solid #3475bb;border-radius:7px;padding:10px 12px}
+.crm-appt-note strong{font-size:12px;color:#22558d}
+.crm-appt-note p{font-size:13px;line-height:1.5;white-space:pre-wrap;margin:4px 0 0}
+.role-admin .crm-appt-actions .btn{font-size:11px;min-height:34px;padding:7px 10px}
+@media(max-width:740px){
+ .role-admin .crm-client-panels,.role-admin .crm-form-two,.role-admin .crm-callback-form{grid-template-columns:1fr}
+ .role-admin .crm-client-heading,.role-admin .crm-agenda-header{align-items:flex-start}
+ .role-admin .crm-agenda-header{flex-direction:column}
+ .role-admin .crm-agenda-header .btn{width:100%}
+ .role-admin .crm-light-panel{padding:13px}
+ .role-admin .crm-appointment-form button[type=submit]{width:100%}
+}
+html[data-theme=dark] .role-admin .crm-light-panel,html[data-theme=dark] .role-admin .crm-client-advanced,html[data-theme=dark] .role-admin .crm-client-choice{background:#1b2739;color:#f4f7fa;border-color:#3b4d63}
+html[data-theme=dark] .role-admin .crm-appointment-form input,html[data-theme=dark] .role-admin .crm-appointment-form textarea,html[data-theme=dark] .role-admin .crm-appointment-form select,html[data-theme=dark] .role-admin .crm-input{background:#111d2e;color:#fff;border-color:#54677f}
+html[data-theme=dark] .crm-appt-note{background:#203b5e}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -881,14 +953,21 @@ function callbackBoard(){
  }).join("")+(all.length?"":'<div class="notice">Nessun richiamo in programma.</div>');
 }
 function callbackEditor(l){
- const d=l.callback_at?new Date(l.callback_at):null;
- const value=d&&!isNaN(d)?new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16):"";
- return '<div class="callback-panel"><div class="name">Programma richiamata</div>'+callbackTimeHtml(l)+
- '<form id="callbackForm" class="callback-form"><div class="field"><label>Data e ora</label><input id="callbackWhen" type="datetime-local" value="'+value+'" required></div>'+
- '<div class="field"><label>Nota / motivo</label><input id="callbackNote" placeholder="Es. cliente occupato" value="'+esc(l.notes||"")+'></div>'+
- '<button class="btn primary" type="submit">Salva richiamo</button></form>'+
- '<button class="btn ok" id="callbackDone" style="margin-top:10px">Richiamo effettuato / Contattato</button></div>';
+ const dt=l.callback_at?new Date(l.callback_at):null;
+ const value=dt&&!Number.isNaN(dt.getTime())?new Date(dt.getTime()-dt.getTimezoneOffset()*60000).toISOString().slice(0,16):"";
+ const old=String(l.notes||"");
+ const corrupted=/<\s*\/?\s*[a-z][^>]*>|&lt;\/?(?:div|button|input)/i.test(old);
+ const note=corrupted?"":old.slice(0,900);
+ return `<section class="crm-callback"><h4>Programma una richiamata</h4>${callbackTimeHtml(l)}
+   ${corrupted?'<p class="crm-hint">Una vecchia nota contiene testo non valido: puoi riscriverla qui.</p>':""}
+   <form id="callbackForm" class="crm-callback-form">
+     <div class="field"><label for="callbackWhen">Data e ora</label><input id="callbackWhen" type="datetime-local" value="${value}" required></div>
+     <div class="field"><label for="callbackNote">Motivo / promemoria</label><textarea id="callbackNote" rows="2" placeholder="Es. cliente da ricontattare venerdì">${esc(note)}</textarea></div>
+     <div class="crm-inline-actions"><button class="btn primary" type="submit">Salva richiamo</button><button type="button" class="btn ghost" id="callbackDone">Richiamo effettuato</button></div>
+   </form>
+ </section>`;
 }
+
 async function saveCallback(id,when,note){
  const d=new Date(when);
  if(!when||isNaN(d))return alert("Seleziona una data e un orario validi.");
@@ -1049,83 +1128,83 @@ function leadForm(){
 }
 
 function leadDetail(id){
-  const l=leads.find(x=>x.id===id);
-  shell(`
-    <div class="card">
-      <div class="name">${esc(l.full_name)}</div>
-      <div class="meta">${esc(originLabel[l.origin_type]||"Cliente")} · ${esc(l.source)} · ${fmt(l.created_at)}</div>
-      <p><b>${esc(l.phone||"")}</b><br>${esc(l.email||"")}<br>${esc([l.address,l.city,l.province].filter(Boolean).join(", "))}</p>
-      <p>${esc(l.request||"")}</p>
-      <span class="pill">${esc(label[l.status]||l.status)}</span>
-    </div>
-    <div class="row">
-      <a class="btn blue" href="tel:${esc(l.phone||"")}">Chiama</a>
-      <a class="btn ok" target="_blank" href="https://wa.me/${waNumber(l.phone)}">WhatsApp</a>
-      <button class="btn primary" id="schedule">Fissa sopralluogo</button>
-      ${profile.role==="admin"?'<button class="btn bad" id="deleteLead">Elimina cliente</button>':""}
-    </div>
-    ${callbackEditor(l)}
-    <div class="section">Esito chiamata</div>
-    <div class="row">
-      ${[
-        ["valid","Valido","ok"],["bot","Bot/Falso","bad"],["out_of_area","Fuori zona","bad"],
-        ["no_answer","Non risponde","warn"],["callback","Da richiamare","warn"],["not_interested","Non interessato","ghost"]
-      ].map(([s,n,c])=>`<button class="btn ${c}" data-s="${s}">${n}</button>`).join("")}
-    </div>
-  `);
-
-  document.querySelector("#schedule").onclick=()=>apptForm(l);
-  if(document.querySelector("#deleteLead"))document.querySelector("#deleteLead").onclick=()=>deleteLead(id);
-  document.querySelector("#callbackForm").onsubmit=e=>{e.preventDefault();saveCallback(id,document.querySelector("#callbackWhen").value,document.querySelector("#callbackNote").value);};
-  document.querySelector("#callbackDone").onclick=async()=>{const {error}=await sb.from("leads").update({status:"valid",callback_at:null}).eq("id",id);if(error)return alert(error.message);await load();view="leads";render();};
-
-  document.querySelectorAll("[data-s]").forEach(b=>b.onclick=async()=>{
-    if(b.dataset.s==="callback"){document.querySelector("#callbackWhen").focus();document.querySelector("#callbackForm").scrollIntoView({behavior:"smooth",block:"center"});return;}
-    let p={status:b.dataset.s,callback_at:null};
-    const {error}=await sb.from("leads").update(p).eq("id",id);
-    if(error) return alert(error.message);
-    await load(); view="leads"; render();
-  });
+ const l=leads.find(x=>x.id===id);if(!l){view="leads";render();return;}
+ const p=String(l.phone||"").replace(/[^0-9+]/g,"");
+ const canPhone=digits(p).length>=8;
+ const wa=waNumber(p);
+ const address=[l.address,l.city,l.province].filter(Boolean).join(", ");
+ const previous=appts.filter(a=>a.lead_id===id).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
+ const history=previous.length?previous.map(a=>`<div class="crm-visit-history">
+   <div><strong>${esc(visitLabel(a.activity_type))}</strong><small>${fmt(a.starts_at)} · ${esc(a.technician_name||"Tecnico")} · ${esc(apptLabel[a.status]||a.status||"")}</small>
+   ${a.notes_for_technician||a.notes?`<p>${esc(a.notes_for_technician||a.notes)}</p>`:""}</div>
+   ${profile.role==="admin"?`<button class="btn ghost" data-edit="${esc(a.id)}">Modifica</button>`:""}</div>`).join(""):'<p class="crm-hint">Nessuna visita precedente.</p>';
+ shell(`<div class="crm-client-page">
+   <button class="crm-link-back" id="backClients" type="button">← Clienti</button>
+   <div class="crm-client-heading"><div><span class="crm-eyebrow">SCHEDA CLIENTE</span><h2>${esc(l.full_name||"Cliente")}</h2>
+     <div class="crm-hint">${esc(l.city||"Comune da verificare")} · ${esc(l.source||"Provenienza non specificata")}</div>
+   </div><span class="lead-state lead-state-${esc(l.status||"new")}">${esc(label[l.status]||l.status||"Nuovo")}</span></div>
+   <div class="crm-client-actions">
+     <button class="btn primary" id="schedule">+ Appuntamento</button>
+     <button class="btn ghost" data-purpose="Rilievo misure">Misure definitive</button>
+     <button class="btn ghost" data-purpose="Assistenza">Assistenza</button>
+     ${canPhone?`<a class="btn ghost" href="tel:${esc(p)}">Chiama</a>`:""}
+     ${canPhone&&wa.length>=10?`<a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/${esc(wa)}">WhatsApp</a>`:""}
+   </div>
+   <div class="crm-client-panels">
+     <section class="crm-light-panel"><h3>Recapiti</h3><div class="crm-info-row"><span>Telefono</span><strong>${esc(l.phone||"—")}</strong></div>
+     <div class="crm-info-row"><span>Email</span><strong>${esc(l.email||"—")}</strong></div>
+     <div class="crm-info-row"><span>Indirizzo</span><strong>${esc(address||"Da completare")}</strong></div></section>
+     <section class="crm-light-panel"><h3>Richiesta</h3><p class="crm-detail-text">${esc(l.request||l.request_summary||"Nessun dettaglio registrato.")}</p></section>
+   </div>
+   <section class="crm-light-panel"><h3>Appuntamenti e storico <span class="crm-soft-count">${previous.length}</span></h3>${history}</section>
+   <details class="crm-client-advanced" ${l.status==="callback"?"open":""}><summary>Richiami ed esiti commerciali</summary>
+     ${callbackEditor(l)}
+     <div class="crm-inline-actions"><span>Esito chiamata:</span>
+     ${[["valid","Contattato","ok"],["callback","Da richiamare","warn"],["no_answer","Non risponde","warn"],["not_interested","Non interessato","ghost"],["bot","Bot/Falso","bad"],["out_of_area","Fuori zona","bad"]].map(([v,n,c])=>`<button class="btn ${c}" data-s="${v}">${n}</button>`).join("")}</div>
+     ${profile.role==="admin"?'<details class="crm-delete-options"><summary>Opzioni avanzate</summary><button class="btn bad" id="deleteLead">Elimina cliente</button></details>':""}
+   </details>
+ </div>`);
+ document.querySelector("#backClients").onclick=()=>{view="leads";render()};
+ document.querySelector("#schedule").onclick=()=>apptForm(l);
+ document.querySelectorAll("[data-purpose]").forEach(b=>b.onclick=()=>apptForm(l,b.dataset.purpose));
+ document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editAppt(b.dataset.edit));
+ const dl=document.querySelector("#deleteLead");if(dl)dl.onclick=()=>deleteLead(id);
+ document.querySelector("#callbackForm").onsubmit=e=>{e.preventDefault();saveCallback(id,document.querySelector("#callbackWhen").value,document.querySelector("#callbackNote").value)};
+ document.querySelector("#callbackDone").onclick=async()=>{const {error}=await sb.from("leads").update({status:"valid",callback_at:null}).eq("id",id);if(error)return alert(error.message);await load();view="leads";render()};
+ document.querySelectorAll("[data-s]").forEach(b=>b.onclick=async()=>{if(b.dataset.s==="callback"){document.querySelector(".crm-client-advanced").open=true;document.querySelector("#callbackWhen").focus();return;}
+ const {error}=await sb.from("leads").update({status:b.dataset.s,callback_at:null}).eq("id",id);if(error)return alert(error.message);await load();view="leads";render()});
 }
 
 function apptCards(xs){
-  return xs.map(a=>`
-    <div class="card appt ${day(a.starts_at)===day(now())?"today":""}">
-      <div class="name">${esc(a.client_name||"Cliente")}</div>
-      <div class="appt-status ${esc(a.status)}">${esc(apptLabel[a.status]||a.status)}</div>
-      <div class="appt-date">
-        <div class="appt-date-main">${fmtDate(a.starts_at)}${day(a.starts_at)===day(now())?'<span class="today-tag">OGGI</span>':""}</div>
-        <div class="appt-time">${fmtTime(a.starts_at)} – ${fmtTime(a.ends_at)}</div>
-      </div>
-      <div class="meta"><b>${esc(a.activity_type||"Sopralluogo")}</b> · Tecnico: ${esc(a.technician_name||"Antonio")}</div>
-      <div><b>${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</b></div>
-      <div class="meta">${esc(a.notes||"")}</div>
-      ${a.outcome_notes?`<div class="outcome-box"><b>Esito sopralluogo</b>${esc(a.outcome_notes)}</div>`:""}
-      <div class="row" style="margin-top:10px">
-        <a class="btn blue" href="tel:${esc(a.phone||"")}">Chiama</a>
-        <a class="btn ok" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a>
-        <button class="btn ghost" data-measures="${a.id}">Misure</button>
-        ${a.status==="completed"
-          ? `<span class="btn ok">✓ Completato</span>`
-          : profile.role==="technician"
-            ? `<button class="btn ok" data-done="${a.id}">Eseguito</button>`
-            : `<button class="btn ghost" data-edit="${a.id}">Modifica</button><button class="btn bad" data-cancel="${a.id}">Annulla</button><button class="btn bad" data-remove-appt="${a.id}">Elimina</button>`}
-      </div>
-    </div>`).join("") || '<div class="card">Nessun sopralluogo</div>';
+ return xs.map(a=>`<article class="card appt ${day(a.starts_at)===day(now())?"today":""}">
+ <div class="crm-appt-top"><div class="name">${esc(a.client_name||"Cliente")}</div><span class="appt-status ${esc(a.status)}">${esc(apptLabel[a.status]||a.status)}</span></div>
+ <div class="appt-date"><div class="appt-date-main">${fmtDate(a.starts_at)}${day(a.starts_at)===day(now())?'<span class="today-tag">OGGI</span>':""}</div><div class="appt-time">${fmtTime(a.starts_at)}</div></div>
+ <div class="crm-appt-purpose"><strong>${esc(visitLabel(a.activity_type))}</strong> · ${esc(a.technician_name||"Tecnico")}</div>
+ <div class="crm-appt-address">${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div>
+ ${a.notes_for_technician||a.notes?`<div class="crm-appt-note"><strong>Da fare sul posto</strong><p>${esc(a.notes_for_technician||a.notes)}</p></div>`:""}
+ ${a.outcome_notes?`<div class="outcome-box"><b>Esito intervento</b>${esc(a.outcome_notes)}</div>`:""}
+ <div class="row crm-appt-actions">${a.phone?`<a class="btn blue" href="tel:${esc(a.phone)}">Chiama</a>`:""}
+ <a class="btn ok" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a>
+ <button class="btn ghost" data-measures="${esc(a.id)}">Misure</button>
+ ${a.status==="completed"?'<span class="btn ok">✓ Eseguito</span>':profile.role==="technician"?`<button class="btn ok" data-done="${esc(a.id)}">Eseguito</button>`:`<button class="btn ghost" data-edit="${esc(a.id)}">Modifica</button><button class="btn bad" data-cancel="${esc(a.id)}">Annulla</button><button class="btn bad" data-remove-appt="${esc(a.id)}">Elimina</button>`}
+ </div></article>`).join("")||'<div class="card">Nessun appuntamento.</div>';
 }
 
 function agenda(){
-  if(profile.role==="technician"){
-    const todayKey=day(now());
-    const xs=appts.filter(a=>day(a.starts_at)===todayKey && a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
-    shell(`<div class="row" style="margin-bottom:12px"><button class="btn primary" id="techNewClient">+ Nuovo cliente</button><button class="btn blue" id="openWeek">Calendario</button></div><div class="section">Impegni di oggi</div>${xs.length?apptCards(xs):'<div class="card">Nessun impegno oggi.</div>'}<div class="section">Storico clienti e rilievi</div>${appts.filter(a=>a.technician_id===user.id && a.status!=="cancelled" && day(a.starts_at)!==todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)).map(a=>`<div class="card"><div class="name">${esc(a.client_name||"Cliente")}</div><div class="meta">${fmtDate(a.starts_at)} · ${esc(a.activity_type||"Rilievo")}</div><div class="row" style="margin-top:8px"><button class="btn blue" data-measures="${a.id}">Apri misure</button></div></div>`).join("")||'<div class="card">Nessun rilievo precedente disponibile.</div>'}`);
-    document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
-    document.querySelector("#openWeek").onclick=()=>{view="availability";render();};
-  }else{
-    shell(`<div class="section">Agenda prossimi 7 giorni</div>${richAgendaHtml(7)}`);
-  }
-  bindAgendaActions();
+ if(profile.role==="technician"){
+ const todayKey=day(now()),xs=appts.filter(a=>day(a.starts_at)===todayKey&&a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+ shell(`<div class="row" style="margin-bottom:12px"><button class="btn primary" id="techNewClient">+ Nuovo cliente</button><button class="btn blue" id="openWeek">Calendario</button></div>
+ <div class="section">Interventi di oggi</div>${xs.length?apptCards(xs):'<div class="card">Nessun impegno oggi.</div>'}
+ <div class="section">Storico clienti e rilievi</div>${appts.filter(a=>a.technician_id===user.id&&a.status!=="cancelled"&&day(a.starts_at)!==todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)).map(a=>`<div class="card"><div class="name">${esc(a.client_name||"Cliente")}</div><div class="meta">${fmtDate(a.starts_at)} · ${esc(visitLabel(a.activity_type))}</div>${a.notes_for_technician||a.notes?`<div class="meta">${esc(a.notes_for_technician||a.notes)}</div>`:""}<div class="row" style="margin-top:8px"><button class="btn blue" data-measures="${esc(a.id)}">Apri misure</button></div></div>`).join("")||'<div class="card">Nessun rilievo precedente.</div>'}`);
+ document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
+ document.querySelector("#openWeek").onclick=()=>{view="availability";render()};
+ }else{
+ shell(`<div class="crm-agenda-header"><div><h2>Agenda interventi</h2><p class="crm-hint">Cerca un cliente esistente per fissare misure definitive, assistenza o sopralluogo.</p></div><button class="btn primary" id="agendaPickClient">+ Nuovo appuntamento</button></div>${richAgendaHtml(7)}`);
+ document.querySelector("#agendaPickClient").onclick=()=>visitClientPicker();
+ }
+ bindAgendaActions();
 }
+
 async function deleteAppointment(id){
  if(profile.role!=="admin")return;
  const a=appts.find(x=>x.id===id);if(!a)return;
@@ -1599,85 +1678,96 @@ async function setAppt(id,status){
   await load(); render();
 }
 
-function apptForm(l){
-  if(!techs.length){
-    alert("Prima Antonio deve creare il proprio account usando la mail autorizzata.");
-    return;
-  }
-
-  const st=new Date(Date.now()+86400000); st.setHours(9,0,0,0);
-  const en=new Date(st.getTime()+3600000);
-
-  shell(`
-    <div class="section">Fissa sopralluogo</div>
-    <form id="af" class="card">
-      <input type="hidden" name="lead_id" value="${esc(l.id)}">
-      <div class="field"><label>Tecnico</label><select name="technician_id">${techs.map(t=>`<option value="${t.id}">${esc(t.full_name)}</option>`).join("")}</select></div>
-      <div class="field"><label>Cliente</label><input name="client_name" value="${esc(l.full_name)}" required></div>
-      <div class="field"><label>Telefono</label><input name="phone" value="${esc(l.phone||"")}"></div>
-      <div class="field"><label>Indirizzo</label><input name="address" value="${esc(l.address||"")}" required></div>
-      <div class="field"><label>Comune</label><input name="city" value="${esc(l.city||"")}"></div>
-      <div class="field"><label>Provincia</label><input name="province" value="${esc(l.province||"")}"></div><div class="field"><label>Tipo attività</label><select name="activity_type"><option>Sopralluogo</option><option>Installazione</option><option>Rilievo misure</option><option>Assistenza</option><option>Altro</option></select></div>
-      <div class="field"><label>Inizio</label><input name="starts_at" type="datetime-local" value="${local(st)}" required></div>
-      <div class="field"><label>Fine</label><input name="ends_at" type="datetime-local" value="${local(en)}" required></div>
-      <div class="field"><label>Note per Antonio</label><textarea name="notes">${esc(l.request||"")}</textarea></div>
-      <button class="btn primary">Conferma sopralluogo</button>
-    </form>`);
-
-  document.querySelector("#af").onsubmit=async e=>{
-    e.preventDefault();
-    const x=Object.fromEntries(new FormData(e.currentTarget).entries());
-    const t=techs.find(t=>t.id===x.technician_id);
-    x.technician_name=t?.full_name||"Antonio";
-    x.starts_at=new Date(x.starts_at).toISOString();
-    x.ends_at=new Date(x.ends_at).toISOString();
-    x.status="confirmed";
-    x.source="Lead";
-    x.created_by=user.id;
-
-    const {error}=await sb.from("appointments").insert(x);
-    if(error) return alert(error.code==="23P01"?"Questo orario è già occupato.":error.message);
-
-    await sb.from("leads").update({status:"appointment"}).eq("id",l.id);
-    await load(); view="agenda"; render();
-  };
+function visitLabel(type){
+ return {"Sopralluogo":"Sopralluogo iniziale","Rilievo misure":"Misure definitive","Assistenza":"Assistenza tecnica","Installazione":"Posa / installazione","Altro":"Altro intervento"}[type]||type||"Visita tecnica";
 }
 
+function visitDurationMinutes(type){
+ return type==="Installazione"?240:type==="Rilievo misure"?90:60;
+}
+
+function visitWindow(st,type){
+ return {starts_at:st.toISOString(),ends_at:new Date(st.getTime()+visitDurationMinutes(type)*60000).toISOString()};
+}
+
+function visitClientPicker(){
+ const sorted=[...leads].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+ shell(`<div class="crm-visit-wizard"><button class="crm-link-back" id="pickerBack">← Agenda</button><h2>Seleziona il cliente</h2>
+   <p class="crm-hint">Cerca un cliente già registrato e fissa una nuova visita, senza duplicare la sua scheda.</p>
+   <div class="crm-light-panel"><label for="clientPickerQuery">Nome, telefono o comune</label>
+     <input type="search" id="clientPickerQuery" class="crm-input" placeholder="Cerca cliente…" autocomplete="off"><div id="clientPickerResult"></div></div></div>`);
+ document.querySelector("#pickerBack").onclick=()=>{view="agenda";render()};
+ const query=document.querySelector("#clientPickerQuery"),out=document.querySelector("#clientPickerResult");
+ const draw=()=>{const q=query.value.toLocaleLowerCase("it-IT").trim();const match=sorted.filter(l=>!q||[l.full_name,l.phone,l.city,l.province,l.address].some(v=>String(v||"").toLocaleLowerCase("it-IT").includes(q))).slice(0,40);
+ out.innerHTML=match.length?match.map(l=>`<button class="crm-client-choice" type="button" data-pick="${esc(l.id)}"><span><strong>${esc(l.full_name)}</strong><small>${esc([l.city,l.province,l.phone].filter(Boolean).join(" · ")||"Dati da completare")}</small></span><b>›</b></button>`).join(""):'<p class="crm-hint">Nessun cliente trovato. Usa “+ Cliente” per registrarne uno nuovo.</p>';
+ out.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{const l=leads.find(x=>x.id===b.dataset.pick);if(l)apptForm(l)})};
+ query.oninput=draw;draw();
+}
+
+function apptForm(l,initialType="Sopralluogo"){
+ if(!techs.length){alert("Non sono presenti tecnici attivi. Controlla l'account di Antonio.");return;}
+ const date=new Date(Date.now()+86400000);date.setHours(9,0,0,0);
+ const types=[["Sopralluogo","Sopralluogo iniziale"],["Rilievo misure","Misure definitive"],["Assistenza","Assistenza tecnica"],["Installazione","Posa / installazione"],["Altro","Altro intervento"]];
+ shell(`<div class="crm-visit-wizard"><button class="crm-link-back" id="visitBack">← Scheda cliente</button><h2>Nuovo appuntamento</h2>
+   <p class="crm-hint">${esc(l.full_name)} · L'appuntamento comparirà nell'agenda di Antonio con le istruzioni.</p>
+   <form class="crm-light-panel crm-appointment-form" id="af">
+    <input type="hidden" name="lead_id" value="${esc(l.id)}">
+    <div class="crm-form-two"><div class="field"><label for="visitType">Motivo della visita</label><select id="visitType" name="activity_type" required>${types.map(([v,n])=>`<option value="${v}" ${v===initialType?"selected":""}>${n}</option>`).join("")}</select></div>
+      <div class="field"><label>Tecnico</label><select name="technician_id" required>${techs.map(t=>`<option value="${esc(t.id)}">${esc(t.full_name)}</option>`).join("")}</select></div></div>
+    <div class="field"><label for="visitStart">Data e ora di inizio</label><input id="visitStart" name="starts_at" type="datetime-local" value="${local(date)}" required></div>
+    <div class="crm-form-subhead">Dove andare</div>
+    <div class="field"><label>Cliente</label><input name="client_name" value="${esc(l.full_name)}" required></div>
+    <div class="crm-form-two"><div class="field"><label>Telefono</label><input name="phone" value="${esc(l.phone||"")}"></div>
+      <div class="field"><label>Indirizzo</label><input name="address" value="${esc(l.address||"")}" required></div></div>
+    <div class="crm-form-two"><div class="field"><label>Comune</label><input name="city" value="${esc(l.city||"")}"></div><div class="field"><label>Provincia</label><input name="province" value="${esc(l.province||"")}"></div></div>
+    <div class="field"><label for="visitInstructions">Cosa deve fare Antonio?</label><textarea id="visitInstructions" name="notes_for_technician" rows="3" required placeholder="Es. rilevare le misure definitive di tutte le finestre; controllare cassonetti e coprifili; oppure descrivere il guasto"></textarea>
+      <small class="crm-hint">Queste indicazioni saranno ben visibili nell'agenda del tecnico.</small></div>
+    <button class="btn primary" type="submit">Salva appuntamento</button>
+   </form></div>`);
+ document.querySelector("#visitBack").onclick=()=>leadDetail(l.id);
+ document.querySelector("#af").onsubmit=async e=>{e.preventDefault();const x=Object.fromEntries(new FormData(e.currentTarget).entries());
+ const dt=new Date(x.starts_at),notes=String(x.notes_for_technician||"").trim();
+ if(Number.isNaN(dt.getTime()))return alert("Inserisci una data e un'ora valide.");
+ if(!notes)return alert("Scrivi cosa deve fare Antonio durante la visita.");
+ const window=visitWindow(dt,x.activity_type);x.starts_at=window.starts_at;x.ends_at=window.ends_at;
+ x.notes_for_technician=notes;x.notes=notes;x.technician_name=techs.find(t=>t.id===x.technician_id)?.full_name||"Tecnico";
+ x.status="confirmed";x.source="Cliente esistente";x.created_by=user.id;
+ const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;
+ try{const {error}=await sb.from("appointments").insert(x);if(error)throw error;
+ if(["new","valid","callback","no_answer"].includes(l.status)){const u=await sb.from("leads").update({status:"appointment",callback_at:null}).eq("id",l.id);if(u.error)console.warn("Lead status:",u.error)}
+ await load();view="agenda";render();
+ }catch(err){alert(err?.code==="23P01"?"Il tecnico ha già un impegno in quell'orario.":err?.message||"Errore durante il salvataggio.");button.disabled=false;}
+ };
+}
 
 function editAppt(id){
-  const a=appts.find(x=>x.id===id);
-  if(!a) return;
-  shell(`
-    <div class="section">Modifica sopralluogo</div>
-    <form id="ef" class="card">
-      <div class="field"><label>Tecnico</label><select name="technician_id">${techs.map(t=>`<option value="${t.id}" ${t.id===a.technician_id?"selected":""}>${esc(t.full_name)}</option>`).join("")}</select></div>
-      <div class="field"><label>Cliente</label><input name="client_name" value="${esc(a.client_name||"")}" required></div>
-      <div class="field"><label>Telefono</label><input name="phone" value="${esc(a.phone||"")}"></div>
-      <div class="field"><label>Indirizzo</label><input name="address" value="${esc(a.address||"")}" required></div>
-      <div class="field"><label>Comune</label><input name="city" value="${esc(a.city||"")}"></div>
-      <div class="field"><label>Provincia</label><input name="province" value="${esc(a.province||"")}"></div><div class="field"><label>Tipo attività</label><select name="activity_type">${["Sopralluogo","Installazione","Rilievo misure","Assistenza","Altro"].map(v=>`<option ${(a.activity_type||"Sopralluogo")===v?"selected":""}>${v}</option>`).join("")}</select></div>
-      <div class="field"><label>Inizio</label><input name="starts_at" type="datetime-local" value="${local(new Date(a.starts_at))}" required></div>
-      <div class="field"><label>Fine</label><input name="ends_at" type="datetime-local" value="${local(new Date(a.ends_at))}" required></div>
-      <div class="field"><label>Stato</label><select name="status">
-        <option value="confirmed" ${a.status==="confirmed"?"selected":""}>Confermato</option>
-        <option value="reschedule" ${a.status==="reschedule"?"selected":""}>Da riprogrammare</option>
-        <option value="completed" ${a.status==="completed"?"selected":""}>Eseguito</option>
-        <option value="cancelled" ${a.status==="cancelled"?"selected":""}>Annullato</option>
-      </select></div>
-      <div class="field"><label>Note</label><textarea name="notes">${esc(a.notes||"")}</textarea></div>
-      <button class="btn primary">Salva modifiche</button>
-    </form>`);
-  document.querySelector("#ef").onsubmit=async e=>{
-    e.preventDefault();
-    const x=Object.fromEntries(new FormData(e.currentTarget).entries());
-    const t=techs.find(t=>t.id===x.technician_id);
-    x.technician_name=t?.full_name||"Antonio";
-    x.starts_at=new Date(x.starts_at).toISOString();
-    x.ends_at=new Date(x.ends_at).toISOString();
-    const {error}=await sb.from("appointments").update(x).eq("id",id);
-    if(error) return alert(error.code==="23P01"?"Questo orario è già occupato.":(error.message.includes("TECNICO_NON_DISPONIBILE")?"Antonio risulta non disponibile in questo orario.":error.message));
-    await load(); view="agenda"; render();
-  };
+ const a=appts.find(x=>x.id===id);if(!a)return;
+ const oldMinutes=Math.max(30,Math.round((new Date(a.ends_at)-new Date(a.starts_at))/60000));
+ const types=[["Sopralluogo","Sopralluogo iniziale"],["Rilievo misure","Misure definitive"],["Assistenza","Assistenza tecnica"],["Installazione","Posa / installazione"],["Altro","Altro intervento"]];
+ shell(`<div class="crm-visit-wizard"><button class="crm-link-back" id="editVisitBack">← Agenda</button><h2>Modifica appuntamento</h2>
+ <form id="ef" class="crm-light-panel crm-appointment-form">
+   <div class="crm-form-two"><div class="field"><label>Tipo visita</label><select name="activity_type" required>${types.map(([v,n])=>`<option value="${v}" ${a.activity_type===v?"selected":""}>${n}</option>`).join("")}</select></div>
+   <div class="field"><label>Tecnico</label><select name="technician_id" required>${techs.map(t=>`<option value="${esc(t.id)}" ${a.technician_id===t.id?"selected":""}>${esc(t.full_name)}</option>`).join("")}</select></div></div>
+   <div class="field"><label>Data e ora di inizio</label><input name="starts_at" type="datetime-local" value="${local(new Date(a.starts_at))}" required></div>
+   <div class="crm-form-subhead">Dove andare</div>
+   <div class="field"><label>Cliente</label><input name="client_name" value="${esc(a.client_name||"")}" required></div>
+   <div class="crm-form-two"><div class="field"><label>Telefono</label><input name="phone" value="${esc(a.phone||"")}"></div><div class="field"><label>Indirizzo</label><input name="address" value="${esc(a.address||"")}" required></div></div>
+   <div class="crm-form-two"><div class="field"><label>Comune</label><input name="city" value="${esc(a.city||"")}"></div><div class="field"><label>Provincia</label><input name="province" value="${esc(a.province||"")}"></div></div>
+   <div class="field"><label>Istruzioni per Antonio</label><textarea name="notes_for_technician" rows="3" required>${esc(a.notes_for_technician||a.notes||"")}</textarea></div>
+   <div class="field"><label>Stato</label><select name="status">${[["confirmed","Confermato"],["reschedule","Da riprogrammare"],["completed","Eseguito"],["cancelled","Annullato"]].map(([v,n])=>`<option value="${v}" ${a.status===v?"selected":""}>${n}</option>`).join("")}</select></div>
+   <button class="btn primary" type="submit">Salva modifiche</button>
+ </form></div>`);
+ document.querySelector("#editVisitBack").onclick=()=>{view="agenda";render()};
+ document.querySelector("#ef").onsubmit=async e=>{e.preventDefault();const x=Object.fromEntries(new FormData(e.currentTarget).entries());
+ const start=new Date(x.starts_at),notes=String(x.notes_for_technician||"").trim();if(Number.isNaN(start.getTime()))return alert("Inserisci una data e un'ora valide.");
+ if(!notes)return alert("Scrivi le istruzioni per il tecnico.");
+ const minutes=x.activity_type===a.activity_type?oldMinutes:visitDurationMinutes(x.activity_type);
+ x.starts_at=start.toISOString();x.ends_at=new Date(start.getTime()+minutes*60000).toISOString();x.notes_for_technician=notes;x.notes=notes;
+ x.technician_name=techs.find(t=>t.id===x.technician_id)?.full_name||a.technician_name||"Tecnico";
+ const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;
+ try{const {error}=await sb.from("appointments").update(x).eq("id",id);if(error)throw error;await load();view="agenda";render();}
+ catch(err){alert(err?.code==="23P01"?"Il tecnico ha già un impegno in quell'orario.":String(err?.message||"").includes("TECNICO_NON_DISPONIBILE")?"Il tecnico non è disponibile.":err?.message||"Errore durante il salvataggio.");button.disabled=false;}
+ };
 }
 
 function unavailabilityForm(){
@@ -1745,7 +1835,7 @@ function richAgendaHtml(days=7){
     const items=appts.filter(a=>day(a.starts_at)===key&&a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
     const frees=freeRangesForDay(d,items);
     out+=`<div class="card"><div class="name">${new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"2-digit",month:"2-digit"}).format(d)}${i===0?" · OGGI":""}</div><div class="meta">${items.length} ${items.length===1?"impegno":"impegni"}</div>`;
-    out+=items.length?items.map(a=>`<div class="outcome-box"><b>${fmtTime(a.starts_at)}–${fmtTime(a.ends_at)} · ${minutesLabel(new Date(a.ends_at)-new Date(a.starts_at))} · ${esc(a.activity_type||"Sopralluogo")}</b><div class="name">${esc(a.client_name||"Cliente")}</div><div>${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div><div class="meta">${esc(a.notes||"")}</div><div class="row" style="margin-top:8px"><a class="btn blue" href="tel:${esc(a.phone||"")}">Chiama</a><a class="btn ok" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a><button class="btn ghost" data-measures="${a.id}">Misure</button>${profile.role==="admin"?`<button class="btn ghost" data-edit="${a.id}">Modifica</button><button class="btn bad" data-remove-appt="${a.id}">Elimina</button>`:""}</div></div>`).join(""):'<div class="meta" style="margin-top:8px">Nessun impegno programmato.</div>';
+    out+=items.length?items.map(a=>`<div class="outcome-box"><b>${fmtTime(a.starts_at)}–${fmtTime(a.ends_at)} · ${minutesLabel(new Date(a.ends_at)-new Date(a.starts_at))} · ${esc(visitLabel(a.activity_type))}</b><div class="name">${esc(a.client_name||"Cliente")}</div><div>${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div><div class="meta">${esc(a.notes_for_technician||a.notes||"")}</div><div class="row" style="margin-top:8px"><a class="btn blue" href="tel:${esc(a.phone||"")}">Chiama</a><a class="btn ok" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a><button class="btn ghost" data-measures="${a.id}">Misure</button>${profile.role==="admin"?`<button class="btn ghost" data-edit="${a.id}">Modifica</button><button class="btn bad" data-remove-appt="${a.id}">Elimina</button>`:""}</div></div>`).join(""):'<div class="meta" style="margin-top:8px">Nessun impegno programmato.</div>';
     out+=`<div class="meta" style="margin-top:12px"><b>Disponibilità 09:00–18:00</b><br>${frees.length?frees.map(([a,b])=>`<span class="slot">${fmtTime(a)}–${fmtTime(b)}</span>`).join(""):"Nessuna fascia libera di almeno 30 minuti."}</div></div>`;
   }
   return out;
