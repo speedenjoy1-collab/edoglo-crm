@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-19-v33">
+  <meta name="edoglo-build" content="2026-11-19-v34">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -914,6 +914,38 @@ html[data-theme=dark] .role-admin .crm-agenda-selected-head h3{color:#f1f5fa}
 html[data-theme=dark] .role-admin .crm-calendar-day.state-free{background:#204c39;color:#c7f1d6;border-color:#326547}
 html[data-theme=dark] .role-admin .crm-calendar-day.state-full{background:#2c374b;color:#cad5e5;border-color:#45536a}
 </style>
+<style id="edoglo-multiday-v34">
+/* CRM v34: reserve non-consecutive full installation days for one existing client */
+.role-admin .crm-multi-option{border:1px solid #e4e8ef;border-radius:10px;background:#f8fafc;padding:12px 13px;margin:7px 0 11px}
+.role-admin .crm-multi-option label{display:flex;gap:10px;align-items:center;font-weight:850;color:#2a3c54;font-size:13px;cursor:pointer}
+.role-admin .crm-multi-option input[type=checkbox]{width:20px;height:20px;min-height:20px;accent-color:#c5263c;flex:0 0 20px}
+.role-admin .crm-multi-option small{display:block;font-size:11px;margin:6px 0 0 30px;color:#66788c;line-height:1.45}
+.role-admin .crm-install-heading strong{display:block;font-size:14px;color:#243347}
+.role-admin .crm-install-heading p{font-size:12px;color:#708095;line-height:1.5;margin:6px 0 13px}
+.role-admin .crm-install-start{display:grid;grid-template-columns:1fr 130px;gap:7px 12px;align-items:center;background:#fff;padding:11px;border:1px solid #dce4ee;border-radius:9px;margin-bottom:12px}
+.role-admin .crm-install-start label{font-size:12px;font-weight:800;color:#36465a}
+.role-admin .crm-install-start input{width:100%;min-height:45px;border:1px solid #cfdae7;background:#fff;color:#1b2d43;border-radius:8px;padding:8px;font-size:16px}
+.role-admin .crm-install-start small{grid-column:1/-1;font-size:11px;color:#728297;line-height:1.5}
+.role-admin .crm-calendar-day.crm-multi-day.picked{background:#dbe8ff;color:#244e83;border-color:#9bbbe5;outline:2px solid #2b5c96;outline-offset:-2px}
+.role-admin .crm-calendar-day.crm-multi-day:disabled{cursor:not-allowed;opacity:.78}
+.role-admin .crm-install-selected{border-top:1px solid #e2e8ef;margin-top:14px;padding-top:11px}
+.role-admin .crm-install-selected>strong{font-size:12px}
+.role-admin .crm-install-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.role-admin .crm-install-chip{border:1px solid #b8d6c2;border-radius:999px;color:#276446;background:#e6f5ea;padding:7px 10px;min-height:39px;cursor:pointer;font-size:12px;font-weight:750}
+.role-admin .crm-install-chip.invalid{color:#992c43;border-color:#e9b5c0;background:#fbe9ed}
+.role-admin .crm-install-empty{font-size:12px;color:#7a8898;line-height:1.5}
+@media(max-width:560px){
+ .role-admin .crm-install-start{grid-template-columns:1fr}
+ .role-admin .crm-install-start input{max-width:160px}
+ .role-admin .crm-multi-option label{font-size:13px}
+ .role-admin .crm-install-chip{min-height:44px}
+}
+html[data-theme=dark] .role-admin .crm-multi-option,
+html[data-theme=dark] .role-admin .crm-install-start{background:#1b293a;border-color:#344960}
+html[data-theme=dark] .role-admin .crm-install-heading strong,
+html[data-theme=dark] .role-admin .crm-install-start label{color:#f0f4fa}
+html[data-theme=dark] .role-admin .crm-install-start input{background:#0f1d30;color:#fff;border-color:#526783}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -1070,7 +1102,7 @@ function shell(body){
       <div class="brand">
         <div class="brand-mark">E</div>
         <div class="brand-copy">
-          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v33</span>':""}</h1>
+          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v34</span>':""}</h1>
           <div class="sub">${profile.role==="admin"?"Gestione commerciale e sopralluoghi":"Agenda e rilievi tecnici"}</div>
           <div class="role-chip">${profile.role==="admin"?"ADMIN":"TECNICO"}${displayName?" · "+esc(displayName):""}</div>
         </div>
@@ -2093,6 +2125,102 @@ function validateVisitSlot(techId,start,type,ignoreId=null,minutesOverride=null)
  return "";
 }
 
+
+function crmInstallationPlanner(form){
+ const option=form.querySelector("#crmMultiDayOption");
+ const check=form.querySelector("#visitMultiDay");
+ const holder=form.querySelector("#crmMultiInstallPlanner");
+ const mainStart=form.querySelector("#visitStart");
+ const singlePlanner=form.querySelector("#crmBookingCalendar");
+ const tech=form.querySelector('[name="technician_id"]');
+ const type=form.querySelector('[name="activity_type"]');
+ const selectedDays=new Set();
+ let month=mainStart?.value?dateFromKey(mainStart.value.slice(0,10)):new Date();
+ let startHour="09:00";
+ const enabled=()=>Boolean(check.checked&&type.value==="Installazione");
+ form.getInstallationDates=()=>({enabled:enabled(),dates:Array.from(selectedDays).sort(),time:startHour});
+ const candidate=(key)=>{
+   const d=dateFromKey(key),[hh,mm]=startHour.split(":").map(Number);
+   const start=new Date(d.getFullYear(),d.getMonth(),d.getDate(),hh,mm,0,0);
+   const end=new Date(d.getFullYear(),d.getMonth(),d.getDate(),18,0,0,0);
+   const today=startOfDay(new Date());
+   if(d<today)return {valid:false,kind:"past",message:"Data passata"};
+   if(hh<9||start>=end)return {valid:false,kind:"hours",message:"Orario non valido"};
+   const conflict=techBusyIntervals(tech.value).find(a=>start<a.end&&end>a.start);
+   if(conflict)return {valid:false,kind:conflict.kind,message:conflict.kind==="absence"?"Indisponibile":"Impegno presente"};
+   return {valid:true,kind:"free",message:"Libero"};
+ };
+ const draw=()=>{
+   if(!enabled())return;
+   const first=new Date(month.getFullYear(),month.getMonth(),1,12),gridStart=calendarStart(first);
+   const days=Array.from({length:42},(_,i)=>{const d=new Date(gridStart);d.setDate(gridStart.getDate()+i);return d});
+   const labels=["L","M","M","G","V","S","D"];
+   const dates=Array.from(selectedDays).sort();
+   const cells=days.map(d=>{
+     const key=calendarKey(d),test=candidate(key),picked=selectedDays.has(key),outside=!sameMonth(d,month);
+     const klass=picked?"picked":test.valid?"state-free":test.kind==="absence"?"state-blocked":"state-full";
+     return '<button type="button" class="crm-calendar-day crm-multi-day '+klass+(outside?" outside":"")+'" data-install-date="'+key+'" aria-pressed="'+picked+'" title="'+key+' · '+test.message+'" '+(!test.valid&&!picked?'disabled':'')+'><strong>'+d.getDate()+'</strong><span>'+(picked?"Scelto":test.valid?"Libero":test.kind==="absence"?"Assenza":"Occupato")+'</span></button>';
+   }).join("");
+   const chosen=dates.length?dates.map(key=>{
+     const test=candidate(key);
+     return '<button type="button" class="crm-install-chip'+(test.valid?"":" invalid")+'" data-remove-install="'+key+'">'+esc(new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short",year:"numeric"}).format(dateFromKey(key)))+(test.valid?"":" · occupato")+' ×</button>';
+   }).join(""):'<span class="crm-install-empty">Seleziona le giornate dal calendario, anche non consecutive.</span>';
+   holder.innerHTML='<div class="crm-install-heading"><strong>Giornate riservate a questo cliente</strong><p>Seleziona tutti i giorni necessari, anche separati: ad esempio 21, 23 e 24 novembre. I giorni intermedi non verranno bloccati.</p></div>'+
+      '<div class="crm-install-start"><label for="crmInstallStartHour">Ora di inizio per ogni giornata</label><input id="crmInstallStartHour" type="time" min="09:00" max="17:30" step="1800" value="'+startHour+'"><small>Il CRM riserverà la giornata fino alle 18:00. L’orario di fine non va inserito.</small></div>'+
+      '<div class="crm-planner-header"><button type="button" id="installPrev" aria-label="Mese precedente">‹</button><strong>'+esc(new Intl.DateTimeFormat("it-IT",{month:"long",year:"numeric"}).format(month))+'</strong><button type="button" id="installNext" aria-label="Mese successivo">›</button></div>'+
+      '<div class="crm-calendar-grid" role="group" aria-label="Giornate per la posa">'+labels.map(l=>'<div class="crm-calendar-weekday">'+l+'</div>').join("")+cells+'</div>'+
+      '<div class="crm-install-selected"><strong>'+dates.length+' giornate selezionate</strong><div class="crm-install-chips">'+chosen+'</div></div>';
+   holder.querySelector("#installPrev").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1,12);draw()};
+   holder.querySelector("#installNext").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1,12);draw()};
+   holder.querySelector("#crmInstallStartHour").onchange=e=>{startHour=e.target.value||"09:00";draw()};
+   holder.querySelectorAll("[data-install-date]").forEach(btn=>btn.onclick=()=>{
+     const key=btn.dataset.installDate;
+     if(selectedDays.has(key))selectedDays.delete(key);
+     else if(candidate(key).valid)selectedDays.add(key);
+     draw();
+   });
+   holder.querySelectorAll("[data-remove-install]").forEach(btn=>btn.onclick=()=>{selectedDays.delete(btn.dataset.removeInstall);draw()});
+ };
+ const toggle=()=>{
+   const isInstall=type.value==="Installazione";
+   option.hidden=!isInstall;
+   if(!isInstall)check.checked=false;
+   const isMulti=enabled();
+   mainStart.closest(".field").style.display=isMulti?"none":"";
+   singlePlanner.style.display=isMulti?"none":"";
+   holder.hidden=!isMulti;
+   if(isMulti)draw();
+ };
+ type.addEventListener("change",toggle);
+ tech.addEventListener("change",()=>{if(enabled())draw()});
+ check.addEventListener("change",toggle);
+ toggle();
+}
+function installationAppointmentRows(form,base,notes){
+ const schedule=form.getInstallationDates?.();
+ if(!schedule?.enabled)return {rows:null,error:null};
+ if(schedule.dates.length<2)return {rows:null,error:"Seleziona almeno due giornate per la posa, anche non consecutive."};
+ const [hh,mm]=schedule.time.split(":").map(Number);
+ if(!Number.isInteger(hh)||!Number.isInteger(mm)||hh<9||hh>17||mm<0||mm>59)return {rows:null,error:"Inserisci un orario di inizio valido."};
+ const groupId="posa-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);
+ const count=schedule.dates.length;
+ const rows=[];
+ for(const [i,key]of schedule.dates.entries()){
+   const d=dateFromKey(key);
+   if(calendarKey(d)!==key)return {rows:null,error:"Una delle date selezionate non è valida."};
+   if(d<startOfDay(new Date()))return {rows:null,error:"Non è possibile programmare un giorno già trascorso."};
+   const start=new Date(d.getFullYear(),d.getMonth(),d.getDate(),hh,mm,0,0);
+   const end=new Date(d.getFullYear(),d.getMonth(),d.getDate(),18,0,0,0);
+   if(start>=end)return {rows:null,error:"L’ora di inizio deve precedere le 18:00."};
+   const conflict=validateVisitSlot(base.technician_id,start,"Installazione",null,Math.round((end-start)/60000));
+   if(conflict)return {rows:null,error:key+": "+conflict};
+   const prefix="POSA · Giornata "+(i+1)+" di "+count+" ("+schedule.dates.map(k=>new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short"}).format(dateFromKey(k))).join(", ")+")";
+   const detailedNotes=prefix+"\n"+notes;
+   rows.push({...base,starts_at:start.toISOString(),ends_at:end.toISOString(),notes_for_technician:detailedNotes,notes:detailedNotes,source:"Cliente esistente · Posa su più giornate · "+groupId});
+ }
+ return {rows,error:null};
+}
+
 function apptForm(l,initialType="Sopralluogo"){
  if(!techs.length){alert("Non sono presenti tecnici attivi. Controlla l'account di Antonio.");return;}
  const date=new Date(Date.now()+86400000);date.setHours(9,0,0,0);
@@ -2105,6 +2233,11 @@ function apptForm(l,initialType="Sopralluogo"){
       <div class="field"><label>Tecnico</label><select name="technician_id" required>${techs.map(t=>`<option value="${esc(t.id)}">${esc(t.full_name)}</option>`).join("")}</select></div></div>
     <div class="field"><label for="visitStart">Data e ora di inizio</label><input id="visitStart" name="starts_at" type="datetime-local" value="${local(date)}" required></div>
     <div id="crmBookingCalendar" class="crm-booking-planner"></div>
+    <div id="crmMultiDayOption" class="crm-multi-option" hidden>
+      <label for="visitMultiDay"><input id="visitMultiDay" type="checkbox"> Installazione su più giornate</label>
+      <small>Per una posa che richiede più date anche non consecutive, selezionale una per una.</small>
+    </div>
+    <div id="crmMultiInstallPlanner" class="crm-booking-planner crm-multi-planner" hidden></div>
     <div class="crm-form-subhead">Dove andare</div>
     <div class="field"><label>Cliente</label><input name="client_name" value="${esc(l.full_name)}" required></div>
     <div class="crm-form-two"><div class="field"><label>Telefono</label><input name="phone" value="${esc(l.phone||"")}"></div>
@@ -2116,16 +2249,20 @@ function apptForm(l,initialType="Sopralluogo"){
    </form></div>`);
  document.querySelector("#visitBack").onclick=()=>leadDetail(l.id);
  crmBookingPlanner(document.querySelector("#af"));
+ crmInstallationPlanner(document.querySelector("#af"));
  document.querySelector("#af").onsubmit=async e=>{e.preventDefault();const x=Object.fromEntries(new FormData(e.currentTarget).entries());
  const dt=new Date(x.starts_at),notes=String(x.notes_for_technician||"").trim();
+ const multiPlan=installationAppointmentRows(e.currentTarget,x,notes);
+ if(multiPlan.error)return alert(multiPlan.error);
+ const multiRows=multiPlan.rows;
  if(Number.isNaN(dt.getTime()))return alert("Inserisci una data e un'ora valide.");
  if(!notes)return alert("Scrivi cosa deve fare Antonio durante la visita.");
- const conflict=validateVisitSlot(x.technician_id,dt,x.activity_type);if(conflict)return alert(conflict);
- const window=visitWindow(dt,x.activity_type);x.starts_at=window.starts_at;x.ends_at=window.ends_at;
+ if(!multiRows){const conflict=validateVisitSlot(x.technician_id,dt,x.activity_type);if(conflict)return alert(conflict);}
+ if(!multiRows){const window=visitWindow(dt,x.activity_type);x.starts_at=window.starts_at;x.ends_at=window.ends_at;}
  x.notes_for_technician=notes;x.notes=notes;x.technician_name=techs.find(t=>t.id===x.technician_id)?.full_name||"Tecnico";
  x.status="confirmed";x.source="Cliente esistente";x.created_by=user.id;
  const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;
- try{const {error}=await sb.from("appointments").insert(x);if(error)throw error;
+ try{const {error}=await sb.from("appointments").insert(multiRows?multiRows.map(row=>({...row,technician_name:x.technician_name,status:x.status,created_by:x.created_by})):x);if(error)throw error;
  if(["new","valid","callback","no_answer"].includes(l.status)){const u=await sb.from("leads").update({status:"appointment",callback_at:null}).eq("id",l.id);if(u.error)console.warn("Lead status:",u.error)}
  await load();view="agenda";render();
  }catch(err){alert(err?.code==="23P01"?"Il tecnico ha già un impegno in quell'orario.":err?.message||"Errore durante il salvataggio.");button.disabled=false;}
