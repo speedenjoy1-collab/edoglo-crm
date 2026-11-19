@@ -1690,6 +1690,18 @@ function apptCards(xs){
  }).join("")||'<div class="card">Nessun appuntamento programmato.</div>';
 }
 
+async function restoreCompletedVisit(id){
+ if(profile.role!=="technician")return;
+ const appt=appts.find(a=>a.id===id&&a.technician_id===user.id&&a.status==="completed");
+ if(!appt)return alert("Intervento non trovato oppure già ripristinato.");
+ const isPast=day(appt.starts_at)<day(now());
+ const message="Riportare "+(appt.client_name||"questo cliente")+" tra gli interventi da fare?"+
+   (isPast?"\\nAttenzione: la data dell'appuntamento è passata. Per inserirlo in un giorno futuro l'ufficio deve riprogrammarlo.":"");
+ if(!confirm(message))return;
+ const {data,error}=await sb.from("appointments").update({status:"confirmed"}).eq("id",id).eq("technician_id",user.id).eq("status","completed").select("id,status").maybeSingle();
+ if(error||!data)return alert("Ripristino non riuscito: "+(error?.message||"stato modificato nel frattempo"));
+ await load();view=day(appt.starts_at)===day(now())?"agenda":"availability";render();
+}
 function completedVisits(){
  if(profile.role!=="technician"){view="agenda";return agenda();}
  const completed=appts.filter(a=>a.technician_id===user.id&&a.status==="completed").sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
@@ -1724,11 +1736,13 @@ function completedVisits(){
        ${a.outcome_notes?`<div class="tech-completed-note"><strong>Esito:</strong> ${esc(a.outcome_notes)}</div>`:""}
        <div class="tech-completed-actions">
          <button class="btn ghost" data-measures="${esc(a.id)}">▤ Apri rilievo</button>
+         <button class="btn tech-reopen" data-reopen="${esc(a.id)}">↶ Riporta da fare</button>
          ${phone?`<a class="btn ghost" href="tel:${esc(phone)}">☎ Chiama</a>`:""}
        </div>
      </article>`;
    }).join(""):'<div class="tech-empty">Nessun intervento eseguito trovato.</div>';
    bindAgendaActions();
+   document.querySelectorAll("[data-reopen]").forEach(b=>b.onclick=()=>restoreCompletedVisit(b.dataset.reopen));
  };
  document.querySelector("#techCompletedQuery").oninput=e=>{window.edogloCompletedSearch=e.target.value;renderList();};
  renderList();
