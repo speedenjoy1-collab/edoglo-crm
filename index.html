@@ -1145,6 +1145,11 @@ html[data-theme=dark] .role-technician .tech-completed-note{background:#223349}
 html[data-theme=dark] .crm-photo-panel,html[data-theme=dark] .crm-photo-item{background:#1b2739;border-color:#3d5067}
 html[data-theme=dark] .crm-photo-pick{background:#26364a;border-color:#486079;color:#f5f7fa}
 html[data-theme=dark] .crm-photo-fields input,html[data-theme=dark] .crm-photo-fields select{background:#172336;color:white;border-color:#52647d}</style>
+<style id="tech-quality-v37">.measure-quality-alert{background:#fff6e7;color:#704211;border:1px solid #efd8b6;border-left:4px solid #d79033;padding:14px;border-radius:11px;margin:12px 0 17px;font-size:13px}
+.measure-quality-alert strong{font-size:14px}.measure-quality-alert p{margin:8px 0}.measure-quality-alert ul{margin:7px 0 0;padding-left:20px}.measure-quality-alert li{margin:5px 0;line-height:1.4}
+.measure-quality-ok{background:#eef9f3;color:#14573d;border:1px solid #c9e9d7;border-radius:11px;padding:14px;margin:12px 0 17px;font-size:13px;font-weight:750}
+html[data-theme=dark] .measure-quality-alert{background:#41301a;color:#ffdbad;border-color:#735326}
+html[data-theme=dark] .measure-quality-ok{background:#1a3b2c;color:#c8f4d8;border-color:#356d4d}</style>
 </head>
 <body>
 <div id="app"></div>
@@ -1353,6 +1358,30 @@ function bindQuoteActions(){
   document.querySelectorAll("[data-quote-accepted]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteAccepted,"accepted"));
   document.querySelectorAll("[data-quote-declined]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteDeclined,"declined"));
 }
+function measurementIssues(r){
+ const type=String(r.product_type||"").trim();
+ const missing=[];
+ const blank=x=>x===null||x===undefined||String(x).trim()==="";
+ const dimensional=!["Condizionatore","Altro"].includes(type);
+ if(dimensional&&!(Number(r.width_mm)>0))missing.push("larghezza");
+ if(dimensional&&!(Number(r.height_mm)>0))missing.push("altezza");
+ if(!(Number(r.quantity)>0))missing.push("quantità");
+ if(type==="Serramento"){
+  if(blank(r.room))missing.push("ambiente");
+  if(blank(r.opening_type))missing.push("tipologia apertura");
+  if(blank(r.profile))missing.push("profilo / serie");
+ }
+ if(!["Condizionatore","Altro"].includes(type)&&blank(r.product_color||r.frame_color))missing.push("colore / finitura");
+ if(["Condizionatore","Altro"].includes(type)&&blank(r.product_detail))missing.push("modello / dettaglio");
+ return missing;
+}
+function measurementQualityHtml(rows){
+ if(!rows?.length)return '<div class="measure-quality-alert" role="status"><strong>Rilievo ancora da compilare</strong><p>Nessuna posizione salvata. Inserisci almeno una posizione.</p></div>';
+ const gaps=rows.map((r,i)=>({name:r.position_name||("Pos. "+(i+1)),issues:measurementIssues(r)})).filter(x=>x.issues.length);
+ if(!gaps.length)return '<div class="measure-quality-ok" role="status">✓ Dati essenziali presenti. Ricontrolla comunque i dettagli tecnici prima di inviare l’ordine.</div>';
+ return '<div class="measure-quality-alert" role="status"><strong>⚠ Dati da completare in '+gaps.length+' posizioni</strong><p>Per un preventivo preciso completa:</p><ul>'+
+   gaps.map(g=>'<li><b>'+esc(g.name)+':</b> '+esc(g.issues.join(", "))+'</li>').join("")+'</ul></div>';
+}
 function photoPanelMarkup(readOnly=false){
  return `<section class="crm-photo-panel" id="appointmentPhotoPanel" aria-label="Fotografie del sopralluogo">
  <div class="crm-photo-header"><h3>📷 Foto del sopralluogo</h3><p>Fotografie collegate al cliente e al rilievo, accessibili al personale autorizzato.</p></div>
@@ -1460,7 +1489,7 @@ async function quoteDetail(leadId){
   shell("<div class=\"section\">Scheda rilievo / preventivo</div>"+
     "<div class=\"card\"><div class=\"name\">"+esc(l.full_name)+"</div><div class=\"meta\">"+esc([l.address,l.city,l.province].filter(Boolean).join(", "))+"</div><div class=\"meta\">"+esc(l.phone||"")+(l.email?" · "+esc(l.email):"")+"</div>"+(l.request?"<div class=\"outcome-box\"><b>Richiesta cliente</b>"+esc(l.request)+"</div>":"")+"</div>"+
     "<div class=\"card\"><div class=\"name\">Rilievo tecnico</div><div class=\"meta\">Tecnico: "+esc(a.technician_name||"Antonio")+" · "+(a.starts_at?fmt(a.starts_at):"")+"</div>"+(a.outcome_notes?"<div class=\"outcome-box\"><b>Esito / note tecnico</b>"+esc(a.outcome_notes)+"</div>":"")+"</div>"+
-    photoPanelMarkup(true)+
+    measurementQualityHtml(rows)+photoPanelMarkup(true)+
     "<div class=\"section\">Posizioni rilevate</div>"+(rows&&rows.length?rows.map(measurementSummaryCard).join(""):"<div class=\"card\">Nessuna posizione salvata.</div>")+
     "<div class=\"row\" style=\"margin-top:14px\"><button class=\"btn ghost\" id=\"backQuotes\">← Preventivi</button><button class=\"btn primary\" id=\"editMeasures\">Modifica / aggiungi al rilievo</button>"+(l.quote_status==="to_prepare"?"<button class=\"btn ok\" id=\"markSent\">Segna preventivo inviato</button>":"")+"</div>");
   initAppointmentPhotos(a.id,ref.id,rows);
@@ -2070,6 +2099,8 @@ async function measurementsView(appointmentId,sessionId=null){
         </div>
         <button class="btn primary" id="confirmProduct" style="width:100%" disabled>OK · Inizia rilievo</button>
       </div>
+      <div class="section">Controllo qualità rilievo</div>
+      ${measurementQualityHtml(rows)}
       ${photoPanelMarkup()}
       <div class="section">Posizioni già salvate</div>
       ${rows.length?rows.map((r,i)=>`<div class="measure-card"><div class="name">Pos. ${i+1} · ${esc(r.product_type||"Rilievo")}</div><div class="meta">${esc(r.room||"")} · ${esc(r.product_color||"")}</div><div class="measure-value">${r.width_mm||"—"} × ${r.height_mm||"—"} mm</div></div>`).join(""):'<div class="card">Nessuna posizione salvata.</div>'}
@@ -2203,6 +2234,8 @@ async function measurementsView(appointmentId,sessionId=null){
       <button class="btn primary">+ Salva posizione</button>
     </form>
 
+    <div class="section">Controllo qualità rilievo</div>
+    ${measurementQualityHtml(rows)}
     ${photoPanelMarkup()}
     <div class="section">Posizioni rilevate</div>
     ${rows?.length?rows.map((r,i)=>`
@@ -2332,6 +2365,9 @@ async function measurementsView(appointmentId,sessionId=null){
   });
 
   document.querySelector("#saveSurvey").onclick=async()=>{
+    const gaps=rows.flatMap((r,i)=>{const issues=measurementIssues(r);return issues.length?[(r.position_name||"Pos. "+(i+1))+": "+issues.join(", ")]:[];});
+    if(gaps.length)return alert("Rilievo da completare prima della conferma definitiva:\\n\\n"+gaps.join("\\n")+
+      "\\n\\nLe posizioni già inserite rimangono salvate. Usa Modifica per completarle.");
     const btn=document.querySelector("#saveSurvey");
     btn.disabled=true;btn.textContent="Verifica salvataggio…";
     const {error}=await sb.rpc("save_measurement_session",{p_session_id:current.id});
