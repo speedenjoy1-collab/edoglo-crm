@@ -1154,6 +1154,13 @@ html[data-theme=dark] .measure-quality-ok{background:#1a3b2c;color:#c8f4d8;borde
 .role-technician .tech-reopen{background:#fff3e5;border:1px solid #e6c9a1;color:#835017}
 html[data-theme=dark] .role-technician .tech-reopen{background:#49331d;border-color:#927047;color:#ffe2ba}
 </style>
+<style id="tech-overdue-v37">
+.role-technician .tech-overdue{border-color:#e8c493;background:#fffaf1}
+.role-technician .tech-overdue>summary{color:#825014}
+.role-technician .tech-overdue-explain{font-size:12px;line-height:1.45;color:#805a2a}
+html[data-theme=dark] .role-technician .tech-overdue{background:#3c2d1c;border-color:#8f6337}
+html[data-theme=dark] .role-technician .tech-overdue>summary{color:#ffdc9a}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -1830,7 +1837,7 @@ async function restoreCompletedVisit(id){
  if(!confirm(message))return;
  const {data,error}=await sb.from("appointments").update({status:"confirmed"}).eq("id",id).eq("technician_id",user.id).eq("status","completed").select("id,status").maybeSingle();
  if(error||!data)return alert("Ripristino non riuscito: "+(error?.message||"stato modificato nel frattempo"));
- await load();view=day(appt.starts_at)===day(now())?"agenda":"availability";render();
+ await load();view="agenda";render();
 }
 function completedVisits(){
  if(profile.role!=="technician"){view="agenda";return agenda();}
@@ -1884,6 +1891,7 @@ function agenda(){
   const own=appts.filter(a=>a.technician_id===user.id&&a.status!=="cancelled"&&a.status!=="completed");
   const today=own.filter(a=>day(a.starts_at)===todayKey).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
   const todo=today;
+  const overdue=own.filter(a=>day(a.starts_at)<todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
   const upcoming=own.filter(a=>day(a.starts_at)>todayKey&&new Date(a.ends_at)>=new Date()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,3);
   const labelDay=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Rome"}).format(new Date());
   shell(`
@@ -1897,6 +1905,7 @@ function agenda(){
    </div>
    <div class="tech-section-heading"><h3>Da fare oggi</h3><span>${todo.length}</span></div>
    ${todo.length?apptCards(todo):'<div class="tech-empty">Nessun intervento da eseguire oggi.</div>'}
+   ${overdue.length?`<details class="tech-history tech-overdue" open><summary>⚠ Interventi arretrati · da riprogrammare <span>${overdue.length}</span></summary><p class="tech-overdue-explain">La data è trascorsa: contatta l’ufficio per fissare una nuova data. Le schede restano accessibili.</p>${apptCards(overdue)}</details>`:""}
    ${upcoming.length?`<div class="tech-section-heading"><h3>Prossimi appuntamenti</h3><span>${upcoming.length}</span></div>${apptCards(upcoming)}`:""}
   `);
   document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
