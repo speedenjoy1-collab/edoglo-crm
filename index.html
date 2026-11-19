@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-19-v28">
+  <meta name="edoglo-build" content="2026-11-19-v29">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -672,6 +672,18 @@ html[data-theme=dark] .role-admin .crm-light-panel,html[data-theme=dark] .role-a
 html[data-theme=dark] .role-admin .crm-appointment-form input,html[data-theme=dark] .role-admin .crm-appointment-form textarea,html[data-theme=dark] .role-admin .crm-appointment-form select,html[data-theme=dark] .role-admin .crm-input{background:#111d2e;color:#fff;border-color:#54677f}
 html[data-theme=dark] .crm-appt-note{background:#203b5e}
 </style>
+<style id="edoglo-update-styles-v29">
+/* CRM v29 - easy reload and self-update notice for tabs left open through deploys */
+.role-admin .crm-build-indicator{display:inline-block;font-size:10px;font-weight:850;color:#8291a4;background:#e9edf3;padding:3px 6px;border-radius:6px;margin-left:7px;vertical-align:middle;letter-spacing:0}
+#edoglo-update-alert{position:fixed;z-index:10000;bottom:22px;right:22px;max-width:390px;width:calc(100% - 44px);background:#1d2939;color:#fff;padding:14px 15px;border-radius:12px;box-shadow:0 12px 35px rgba(10,24,43,.28);display:grid;gap:10px;font-family:inherit}
+#edoglo-update-alert strong{font-size:13px;line-height:1.3}
+#edoglo-update-alert p{font-size:12px;line-height:1.45;color:#e2e8f0;margin:2px 0 0}
+#edoglo-update-alert .edoglo-update-actions{display:flex;align-items:center;gap:8px}
+#edoglo-update-alert button{border:0;border-radius:8px;cursor:pointer;padding:9px 12px;font-size:12px;font-weight:850}
+#edoglo-update-alert .edoglo-update-now{background:#e31e3c;color:#fff}
+#edoglo-update-alert .edoglo-update-later{background:#344155;color:#fff}
+@media(max-width:920px){#edoglo-update-alert{bottom:calc(83px + env(safe-area-inset-bottom));right:11px;width:calc(100% - 22px);max-width:none}}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -831,13 +843,13 @@ function shell(body){
       <div class="brand">
         <div class="brand-mark">E</div>
         <div class="brand-copy">
-          <h1>Edoglò CRM</h1>
+          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v29</span>':""}</h1>
           <div class="sub">${profile.role==="admin"?"Gestione commerciale e sopralluoghi":"Agenda e rilievi tecnici"}</div>
           <div class="role-chip">${profile.role==="admin"?"ADMIN":"TECNICO"}${displayName?" · "+esc(displayName):""}</div>
         </div>
       </div>
       <div class="header-actions">${profile.role==="admin"?'<button type="button" class="btn primary crm-add-btn" id="quickAddClient">+ Cliente</button>':""}
- <details class="crm-header-actions"><summary aria-label="Impostazioni CRM">⋯</summary><div class="crm-header-popup"><button class="btn ghost" id="themeToggle" type="button">◐ Tema</button><button class="btn ghost" id="logout">Esci</button></div></details>
+ <details class="crm-header-actions"><summary aria-label="Impostazioni CRM">⋯</summary><div class="crm-header-popup"><button class="btn ghost" id="themeToggle" type="button">◐ Tema</button><button class="btn ghost" id="refreshCrm" type="button">↻ Aggiorna CRM</button><button class="btn ghost" id="logout">Esci</button></div></details>
  </div>
     </div>
     ${body}
@@ -845,6 +857,7 @@ function shell(body){
   ${nav()}`;
   document.querySelector("#themeToggle").onclick=()=>{const dark=document.documentElement.dataset.theme!=="dark";document.documentElement.dataset.theme=dark?"dark":"light";localStorage.setItem("edoglo-theme",dark?"dark":"light");};
   document.querySelector("#logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
+  document.querySelector("#refreshCrm").onclick=()=>location.assign(location.pathname+"?__crm_force_refresh="+Date.now());
   const quickAdd=document.querySelector("#quickAddClient");if(quickAdd)quickAdd.onclick=()=>leadForm();
   document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
   const more=document.querySelector("#navMore");if(more)more.onclick=()=>{const box=document.querySelector("#navExtra");box.hidden=!box.hidden;more.setAttribute("aria-expanded",String(!box.hidden));};
@@ -1886,6 +1899,41 @@ function staff(){
   document.querySelector("#addUn").onclick=()=>unavailabilityForm();
   document.querySelectorAll("[data-del-un]").forEach(b=>b.onclick=()=>deleteUnavailability(b.dataset.delUn));
 }
+
+
+function initCrmUpdateNotification(){
+  const currentBuild=document.querySelector('meta[name="edoglo-build"]')?.getAttribute('content')||"";
+  let running=false,lastCheck=0,dismissedBuild="";
+  function showAvailable(remoteBuild){
+    if(dismissedBuild===remoteBuild||document.querySelector("#edoglo-update-alert"))return;
+    const box=document.createElement("aside");box.id="edoglo-update-alert";box.setAttribute("role","status");
+    const heading=document.createElement("strong");heading.textContent="È disponibile una nuova versione del CRM";
+    const info=document.createElement("p");info.textContent="Salva le modifiche in corso, poi aggiorna per vedere tutte le nuove schermate.";
+    const buttons=document.createElement("div");buttons.className="edoglo-update-actions";
+    const update=document.createElement("button");update.type="button";update.className="edoglo-update-now";update.textContent="Aggiorna CRM";
+    update.onclick=()=>{location.assign(location.pathname+"?__crm_updated="+encodeURIComponent(remoteBuild)+"&t="+Date.now());};
+    const later=document.createElement("button");later.type="button";later.className="edoglo-update-later";later.textContent="Più tardi";
+    later.onclick=()=>{dismissedBuild=remoteBuild;box.remove();};
+    buttons.append(update,later);box.append(heading,info,buttons);document.body.appendChild(box);
+  }
+  async function checkVersion(force=false){
+    if(document.hidden||running||(!force&&Date.now()-lastCheck<60000))return;
+    lastCheck=Date.now();running=true;
+    try{
+      const url=location.pathname+"?__crm_version_check="+Date.now();
+      const resp=await fetch(url,{cache:"no-store",credentials:"same-origin"});
+      if(!resp.ok)return;
+      const remoteDoc=new DOMParser().parseFromString(await resp.text(),"text/html");
+      const build=remoteDoc.querySelector('meta[name="edoglo-build"]')?.getAttribute("content");
+      if(build&&currentBuild&&build!==currentBuild)showAvailable(build);
+    }catch(err){ /* Offline or network problem: silently retry at the next check. */ }
+    finally{running=false;}
+  }
+  window.addEventListener("focus",()=>checkVersion());
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkVersion();});
+  setInterval(()=>checkVersion(),120000);
+}
+initCrmUpdateNotification();
 
 start().catch(e=>{
   app.innerHTML=`<div class="login"><div class="msg error">${esc(e.message)}</div></div>`;
