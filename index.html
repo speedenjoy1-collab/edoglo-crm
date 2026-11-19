@@ -1447,29 +1447,90 @@ function leadDetail(id){
  const {error}=await sb.from("leads").update({status:b.dataset.s,callback_at:null}).eq("id",id);if(error)return alert(error.message);await load();view="leads";render()});
 }
 
+function appointmentAddress(a){
+ const lead=leads.find(l=>l.id===a.lead_id);
+ const street=String(a.address||lead?.address||"").trim();
+ const city=String(a.city||lead?.city||"").trim();
+ const province=String(a.province||lead?.province||"").trim();
+ const full=[street,city,province].filter(Boolean).join(", ");
+ const ready=Boolean(street&&city);
+ return {street,city,province,full,ready,map:ready?"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(full):""};
+}
+
 function apptCards(xs){
- return xs.map(a=>`<article class="card appt ${day(a.starts_at)===day(now())?"today":""}">
- <div class="crm-appt-top"><div class="name">${esc(a.client_name||"Cliente")}</div><span class="appt-status ${esc(a.status)}">${esc(apptLabel[a.status]||a.status)}</span></div>
- <div class="appt-date"><div class="appt-date-main">${fmtDate(a.starts_at)}${day(a.starts_at)===day(now())?'<span class="today-tag">OGGI</span>':""}</div><div class="appt-time">${fmtTime(a.starts_at)}</div></div>
- <div class="crm-appt-purpose"><strong>${esc(visitLabel(a.activity_type))}</strong> · ${esc(a.technician_name||"Tecnico")}</div>
- <div class="crm-appt-address">${esc([a.address,a.city,a.province].filter(Boolean).join(", "))}</div>
- ${a.notes_for_technician||a.notes?`<div class="crm-appt-note"><strong>Da fare sul posto</strong><p>${esc(a.notes_for_technician||a.notes)}</p></div>`:""}
- ${a.outcome_notes?`<div class="outcome-box"><b>Esito intervento</b>${esc(a.outcome_notes)}</div>`:""}
- <div class="row crm-appt-actions">${a.phone?`<a class="btn blue" href="tel:${esc(a.phone)}">Chiama</a>`:""}
- <a class="btn ok" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([a.address,a.city,a.province].filter(Boolean).join(", "))}">Navigatore</a>
- <button class="btn ghost" data-measures="${esc(a.id)}">Misure</button>
- ${a.status==="completed"?'<span class="btn ok">✓ Eseguito</span>':profile.role==="technician"?`<button class="btn ok" data-done="${esc(a.id)}">Eseguito</button>`:`<button class="btn ghost" data-edit="${esc(a.id)}">Modifica</button><button class="btn bad" data-cancel="${esc(a.id)}">Annulla</button><button class="btn bad" data-remove-appt="${esc(a.id)}">Elimina</button>`}
- </div></article>`).join("")||'<div class="card">Nessun appuntamento.</div>';
+ return xs.map(a=>{
+  const loc=appointmentAddress(a);
+  const phone=String(a.phone||leads.find(l=>l.id===a.lead_id)?.phone||"").trim();
+  const instructions=String(a.notes_for_technician||a.notes||"").trim();
+  const today=day(a.starts_at)===day(now());
+  const status=esc(apptLabel[a.status]||a.status);
+  if(profile.role==="technician"){
+   return `<article class="card tech-job-card ${today?"today":""}">
+    <div class="tech-job-top"><div class="tech-job-datetime"><strong>${fmtTime(a.starts_at)}</strong><span>${fmtDate(a.starts_at)}</span></div><span class="appt-status ${esc(a.status)}">${status}</span></div>
+    <h3 class="tech-job-client">${esc(a.client_name||"Cliente")}</h3>
+    <div class="tech-job-kind">${esc(visitLabel(a.activity_type))}</div>
+    <div class="tech-job-address ${loc.ready?"":"tech-job-address-warning"}">
+      <span class="tech-job-label">⌖ INDIRIZZO DELL'INTERVENTO</span>
+      <strong>${esc(loc.full||"Indirizzo non indicato")}</strong>
+      ${!loc.ready?'<small>Via e comune da verificare con l’ufficio prima di partire.</small>':""}
+    </div>
+    ${instructions?`<div class="tech-job-instructions"><span class="tech-job-label">COSA FARE SUL POSTO</span><p>${esc(instructions)}</p></div>`:""}
+    <div class="tech-job-actions">
+      ${loc.ready?`<a class="btn tech-job-navigate" href="${loc.map}" target="_blank" rel="noopener">⌖ Apri navigatore</a>`:'<span class="tech-job-map-missing">Navigatore non disponibile: indirizzo da completare</span>'}
+      <button class="btn tech-job-survey" data-measures="${esc(a.id)}">▤ Apri rilievo misure</button>
+    </div>
+    <div class="tech-job-secondary">
+      ${phone?`<a class="btn ghost" href="tel:${esc(phone)}">☎ Chiama cliente</a>`:""}
+      ${a.status==="completed"?'<span class="tech-job-completed">✓ Intervento eseguito</span>':`<button class="btn ghost" data-done="${esc(a.id)}">✓ Segna eseguito</button>`}
+    </div>
+   </article>`;
+  }
+  return `<article class="card appt ${today?"today":""}">
+   <div class="crm-appt-top"><div class="name">${esc(a.client_name||"Cliente")}</div><span class="appt-status ${esc(a.status)}">${status}</span></div>
+   <div class="appt-date"><div class="appt-date-main">${fmtDate(a.starts_at)}${today?'<span class="today-tag">OGGI</span>':""}</div><div class="appt-time">${fmtTime(a.starts_at)}</div></div>
+   <div class="crm-appt-purpose"><strong>${esc(visitLabel(a.activity_type))}</strong> · ${esc(a.technician_name||"Tecnico")}</div>
+   <div class="crm-appt-address">${esc(loc.full||"Indirizzo da completare")}</div>
+   ${instructions?`<div class="crm-appt-note"><strong>Da fare sul posto</strong><p>${esc(instructions)}</p></div>`:""}
+   ${a.outcome_notes?`<div class="outcome-box"><b>Esito intervento</b>${esc(a.outcome_notes)}</div>`:""}
+   <div class="row crm-appt-actions">
+    ${phone?`<a class="btn blue" href="tel:${esc(phone)}">Chiama</a>`:""}
+    ${loc.ready?`<a class="btn ok" target="_blank" rel="noopener" href="${loc.map}">Navigatore</a>`:""}
+    <button class="btn ghost" data-measures="${esc(a.id)}">Misure</button>
+    ${a.status==="completed"?'<span class="btn ok">✓ Eseguito</span>':`<button class="btn ghost" data-edit="${esc(a.id)}">Modifica</button><button class="btn bad" data-cancel="${esc(a.id)}">Annulla</button><button class="btn bad" data-remove-appt="${esc(a.id)}">Elimina</button>`}
+   </div>
+  </article>`;
+ }).join("")||'<div class="card">Nessun appuntamento programmato.</div>';
 }
 
 function agenda(){
  if(profile.role==="technician"){
- const todayKey=day(now()),xs=appts.filter(a=>day(a.starts_at)===todayKey&&a.status!=="cancelled").sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
- shell(`<div class="row" style="margin-bottom:12px"><button class="btn primary" id="techNewClient">+ Nuovo cliente</button><button class="btn blue" id="openWeek">Calendario</button></div>
- <div class="section">Interventi di oggi</div>${xs.length?apptCards(xs):'<div class="card">Nessun impegno oggi.</div>'}
- <div class="section">Storico clienti e rilievi</div>${appts.filter(a=>a.technician_id===user.id&&a.status!=="cancelled"&&day(a.starts_at)!==todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)).map(a=>`<div class="card"><div class="name">${esc(a.client_name||"Cliente")}</div><div class="meta">${fmtDate(a.starts_at)} · ${esc(visitLabel(a.activity_type))}</div>${a.notes_for_technician||a.notes?`<div class="meta">${esc(a.notes_for_technician||a.notes)}</div>`:""}<div class="row" style="margin-top:8px"><button class="btn blue" data-measures="${esc(a.id)}">Apri misure</button></div></div>`).join("")||'<div class="card">Nessun rilievo precedente.</div>'}`);
- document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
- document.querySelector("#openWeek").onclick=()=>{view="availability";render()};
+  const todayKey=day(now());
+  const own=appts.filter(a=>a.technician_id===user.id&&a.status!=="cancelled");
+  const today=own.filter(a=>day(a.starts_at)===todayKey).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+  const todo=today.filter(a=>a.status!=="completed");
+  const finished=today.filter(a=>a.status==="completed");
+  const upcoming=own.filter(a=>day(a.starts_at)>todayKey&&new Date(a.ends_at)>=new Date()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,3);
+  const past=own.filter(a=>day(a.starts_at)<todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)).slice(0,10);
+  const labelDay=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Rome"}).format(new Date());
+  shell(`
+   <header class="tech-home-hero">
+     <div><span class="tech-eyebrow">AGENDA DI ANTONIO</span><h2>Oggi</h2><p>${esc(labelDay)}</p></div>
+     <div class="tech-home-count"><strong>${todo.length}</strong><span>${todo.length===1?"intervento da fare":"interventi da fare"}</span></div>
+   </header>
+   <div class="tech-home-menu">
+     <button class="btn tech-calendar-btn" id="openWeek">▦ Apri calendario</button>
+     <button class="btn tech-new-btn" id="techNewClient">+ Nuovo cliente / rilievo</button>
+   </div>
+   <div class="tech-section-heading"><h3>Da fare oggi</h3><span>${todo.length}</span></div>
+   ${todo.length?apptCards(todo):'<div class="tech-empty">Nessun intervento da eseguire oggi.</div>'}
+   ${finished.length?`<details class="tech-history" ><summary>✓ Interventi completati oggi <span>${finished.length}</span></summary>${apptCards(finished)}</details>`:""}
+   ${upcoming.length?`<div class="tech-section-heading"><h3>Prossimi appuntamenti</h3><span>${upcoming.length}</span></div>${apptCards(upcoming)}`:""}
+   <details class="tech-history"><summary>Storico visite e rilievi <span>${past.length}</span></summary>
+     ${past.length?past.map(a=>`<div class="tech-history-line"><div><strong>${esc(a.client_name||"Cliente")}</strong><small>${fmtDate(a.starts_at)} · ${esc(visitLabel(a.activity_type))}</small><small>⌖ ${esc(appointmentAddress(a).full||"Indirizzo non indicato")}</small></div><button class="btn ghost" data-measures="${esc(a.id)}">Apri rilievo</button></div>`).join(""):'<p class="tech-empty">Nessun rilievo precedente.</p>'}
+   </details>
+  `);
+  document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
+  document.querySelector("#openWeek").onclick=()=>{view="availability";render();};
  }else{
  if(!agendaTechId)agendaTechId=techs[0]?.id||"";
  shell(`<div class="crm-agenda-header"><div><h2>Agenda interventi</h2><p class="crm-hint">Controlla la settimana o l'intero mese. Giorni liberi, appuntamenti e assenze di Antonio.</p></div><button class="btn primary" id="agendaPickClient">+ Nuovo appuntamento</button></div>
