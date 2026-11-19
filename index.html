@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-19-v30">
+  <meta name="edoglo-build" content="2026-11-19-v31">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -745,6 +745,90 @@ html[data-theme=dark] .role-admin .crm-agenda-event-heading strong{color:#edf2fc
 html[data-theme=dark] .role-admin .crm-agenda-date-tile{background:#2a3950}
 html[data-theme=dark] .role-admin .crm-agenda-date-tile strong{color:#edf2fc}
 </style>
+<style id="edoglo-mobile-v31">
+/* Edoglo CRM v31: mobile-first interaction and readability; no data-model changes */
+@media(max-width:919px){
+ html{overflow-x:clip}
+ body.role-admin,body.role-technician{max-width:100%;overflow-x:clip}
+ .role-admin .wrap,.role-technician .wrap{width:100%;min-width:0}
+ .role-admin .wrap>*,.role-admin .crm-client-page,.role-admin .crm-visit-wizard,.role-admin .crm-compact-agenda,.role-admin .crm-agenda-day,.role-admin .crm-agenda-event,.role-admin .crm-client-panels,.role-admin .crm-simple-head,.role-admin .crm-client-heading{min-width:0}
+ .role-admin .tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;padding:5px 4px calc(6px + env(safe-area-inset-bottom));left:0;right:0;bottom:0;position:fixed;width:100%;max-width:100%;z-index:150}
+ .role-admin .tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:56px;width:100%;min-width:0;padding:6px 1px;font-size:11px;line-height:1.16;white-space:nowrap}
+ .role-admin .tab-icon{font-size:20px;line-height:1;min-height:21px;display:grid;place-items:center}
+ .role-admin .nav-extra:not([hidden]){bottom:calc(100% + 8px);right:8px;width:min(270px,calc(100vw - 16px));max-height:min(66vh,380px);overflow:auto;z-index:200}
+ .role-admin .nav-extra button{min-height:46px;font-size:14px}
+ .role-admin .wrap{padding-bottom:calc(98px + env(safe-area-inset-bottom))}
+ .role-admin .top{gap:7px}
+ .role-admin .header-actions{flex:0 0 auto;gap:5px}
+ .role-admin .crm-add-btn{min-height:44px!important;padding:9px 11px!important;font-size:12px!important}
+ .role-admin .crm-header-actions summary{min-width:44px;height:44px}
+ .role-admin .crm-header-popup .btn{min-height:44px!important}
+ .role-admin .crm-inbox-header,.role-admin .crm-simple-head,.role-admin .crm-client-heading{gap:8px}
+ .role-admin .crm-inbox-header h2,.role-admin .crm-simple-head h2,.role-admin .crm-client-heading h2{line-height:1.2}
+ .role-admin .crm-inbox-header p,.role-admin .crm-simple-head p{font-size:12px;line-height:1.48}
+ .role-admin .crm-lead-row{min-height:68px;gap:9px;padding:11px 10px}
+ .role-admin .crm-lead-row.is-new{padding-left:7px}
+ .role-admin .crm-lead-title{font-size:14px}
+ .role-admin .crm-lead-meta{font-size:12px}
+ .role-admin .crm-lead-end{flex-basis:90px}
+ .role-admin .crm-lead-time{font-size:10px}
+ .role-admin .crm-lead-status{font-size:10px}
+ .role-admin .crm-filter,.role-admin .crm-mini-link{min-height:44px;padding:10px 12px;font-size:12px}
+ .role-admin .crm-filters,.role-admin .lead-filters{overscroll-behavior-inline:contain}
+ .role-admin .crm-search-input,.role-admin #leadSearch,.role-admin #clientPickerQuery,
+ .role-admin .crm-appointment-form input,.role-admin .crm-appointment-form select,
+ .role-admin .crm-appointment-form textarea,.role-admin .crm-input,
+ .role-admin .crm-callback-form input,.role-admin .crm-callback-form textarea,
+ .role-admin .field input,.role-admin .field select,.role-admin .field textarea{
+   min-width:0;max-width:100%;font-size:16px;line-height:1.45
+ }
+ .role-admin .crm-appointment-form input,.role-admin .crm-appointment-form select,.role-admin .crm-input{min-height:48px}
+ .role-admin .crm-appointment-form button[type=submit]{min-height:48px}
+ .role-admin .crm-client-actions .btn,.role-admin .crm-visit-history .btn,.role-admin .crm-inline-actions .btn{min-height:44px}
+ .role-admin .crm-client-choice{min-height:58px;padding:12px 5px}
+ .role-admin .crm-client-choice strong{font-size:14px}
+ .role-admin .crm-client-choice small{font-size:12px;overflow-wrap:anywhere}
+ .role-admin .crm-info-row{grid-template-columns:80px minmax(0,1fr)}
+ .role-admin .crm-visit-history{gap:8px;flex-wrap:wrap}
+ .role-admin .crm-visit-history>div{min-width:0;flex:1 1 190px}
+ .role-admin .crm-visit-history p{overflow-wrap:anywhere}
+ .role-admin .crm-quote-row{min-width:0}
+ .role-admin .crm-quote-actions .btn{min-height:44px;font-size:12px}
+ .role-admin .crm-agenda-summary{padding:10px 12px}
+ .role-admin .crm-agenda-day{padding:10px;min-width:0}
+ .role-admin .crm-agenda-date h3{font-size:13px;line-height:1.35}
+ .role-admin .crm-agenda-event{grid-template-columns:66px minmax(0,1fr);gap:9px;padding:10px;min-width:0}
+ .role-admin .crm-agenda-event-main{min-width:0;overflow-wrap:anywhere}
+ .role-admin .crm-agenda-event-heading strong{font-size:14px;overflow-wrap:anywhere}
+ .role-admin .crm-agenda-event-time strong{font-size:15px}
+ .role-admin .crm-agenda-event-actions{grid-column:1/-1;justify-content:flex-start;gap:7px;padding-left:0}
+ .role-admin .crm-agenda-icon-link,.role-admin .crm-agenda-edit-btn,.role-admin .crm-agenda-danger-btn{min-height:44px;min-width:44px;font-size:16px}
+ .role-admin .crm-agenda-edit-btn{font-size:12px;padding:10px 14px}
+ .role-admin .crm-agenda-notes summary,.role-admin .crm-availability summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+ .role-admin .crm-availability{width:100%}
+ .role-admin .crm-free-slots{gap:7px}
+ .role-admin .crm-slot{font-size:11px;min-height:34px;display:inline-flex;align-items:center}
+ .role-technician .wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+ .role-technician .tabs{z-index:150}
+ .role-technician .tab{min-height:54px}
+ .role-technician .survey-current,.role-technician .position-head{flex-wrap:wrap}
+ .role-technician .appt .row .btn{min-height:48px}
+ .role-technician .field input,.role-technician .field select,.role-technician .field textarea{min-width:0;max-width:100%;font-size:16px}
+}
+@media(max-width:374px){
+ .role-admin .wrap{padding-left:9px;padding-right:9px}
+ .role-admin .brand-mark{width:32px;height:32px}
+ .role-admin .brand h1{font-size:16px}
+ .role-admin .crm-build-indicator{font-size:9px;padding:2px 4px;margin-left:4px}
+ .role-admin .tab{font-size:10px}
+ .role-admin .tab-icon{font-size:19px}
+ .role-admin .crm-lead-end{flex-basis:82px}
+ .role-admin .crm-lead-title{font-size:13px}
+ .role-admin .crm-agenda-event{grid-template-columns:57px minmax(0,1fr);gap:7px}
+ .role-admin .crm-agenda-event-time strong{font-size:13px}
+ .role-admin .crm-agenda-event-heading strong{font-size:13px}
+}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -904,7 +988,7 @@ function shell(body){
       <div class="brand">
         <div class="brand-mark">E</div>
         <div class="brand-copy">
-          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v30</span>':""}</h1>
+          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v31</span>':""}</h1>
           <div class="sub">${profile.role==="admin"?"Gestione commerciale e sopralluoghi":"Agenda e rilievi tecnici"}</div>
           <div class="role-chip">${profile.role==="admin"?"ADMIN":"TECNICO"}${displayName?" · "+esc(displayName):""}</div>
         </div>
