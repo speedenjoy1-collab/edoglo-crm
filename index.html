@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-19-v36">
+  <meta name="edoglo-build" content="2026-11-19-v37">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -1122,6 +1122,45 @@ html[data-theme=dark] .role-technician .tech-archive-heading p{color:#b2c0d2}
 html[data-theme=dark] .role-technician .tech-completed-search input{background:#111d2e;border-color:#52647d;color:#fff}
 html[data-theme=dark] .role-technician .tech-completed-note{background:#223349}
 </style>
+<style id="tech-photos-v37">.crm-photo-panel{border:1px solid #dce4eb;border-radius:16px;background:#fff;padding:16px;margin:18px 0;box-shadow:0 4px 17px rgba(30,44,61,.045)}
+.crm-photo-header h3{margin:0 0 5px;font-size:18px}.crm-photo-header p{margin:0 0 14px;color:#64748b;font-size:13px;line-height:1.4}
+.crm-photo-upload{display:grid;gap:10px;margin:12px 0 16px}
+.crm-photo-inputs{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.crm-photo-pick{display:flex;align-items:center;justify-content:center;text-align:center;background:#eaf1f6;border:1px solid #d2dde7;border-radius:10px;padding:12px;min-height:48px;font-size:13px;font-weight:850;cursor:pointer;color:#26394e;position:relative}
+.crm-photo-pick input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.crm-photo-pick:focus-within{outline:2px solid #2677c4}
+.crm-photo-upload small,.crm-photo-upload>span{font-size:11px;color:#697789}
+.crm-photo-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.crm-photo-fields label{font-size:12px;display:grid;gap:5px;font-weight:800;color:#435369}
+.crm-photo-fields input,.crm-photo-fields select{font-size:14px;min-width:0;width:100%;min-height:42px;padding:9px 10px;border:1px solid #cfdae5;border-radius:9px;background:#fff;color:#23364c}
+.crm-photo-upload .btn{min-height:46px}
+.crm-photo-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
+.crm-photo-item{border:1px solid #e2e8ef;border-radius:10px;overflow:hidden;background:#f9fafb;display:flex;flex-direction:column;gap:5px;padding-bottom:8px}
+.crm-photo-item a{display:block;aspect-ratio:4/3;overflow:hidden}
+.crm-photo-item img{object-fit:cover;width:100%;height:100%}
+.crm-photo-item strong,.crm-photo-item small{font-size:11px;padding:0 8px;color:#3d4d5c;overflow-wrap:anywhere}
+.crm-photo-error{font-size:12px;color:#9c2b2b;background:#fff1f2;padding:9px;border-radius:8px}
+.crm-photo-success{font-size:12px;color:#14654d;padding:8px}
+@media(max-width:530px){.crm-photo-fields{grid-template-columns:1fr}.crm-photo-panel{padding:12px}}
+html[data-theme=dark] .crm-photo-panel,html[data-theme=dark] .crm-photo-item{background:#1b2739;border-color:#3d5067}
+html[data-theme=dark] .crm-photo-pick{background:#26364a;border-color:#486079;color:#f5f7fa}
+html[data-theme=dark] .crm-photo-fields input,html[data-theme=dark] .crm-photo-fields select{background:#172336;color:white;border-color:#52647d}</style>
+<style id="tech-quality-v37">.measure-quality-alert{background:#fff6e7;color:#704211;border:1px solid #efd8b6;border-left:4px solid #d79033;padding:14px;border-radius:11px;margin:12px 0 17px;font-size:13px}
+.measure-quality-alert strong{font-size:14px}.measure-quality-alert p{margin:8px 0}.measure-quality-alert ul{margin:7px 0 0;padding-left:20px}.measure-quality-alert li{margin:5px 0;line-height:1.4}
+.measure-quality-ok{background:#eef9f3;color:#14573d;border:1px solid #c9e9d7;border-radius:11px;padding:14px;margin:12px 0 17px;font-size:13px;font-weight:750}
+html[data-theme=dark] .measure-quality-alert{background:#41301a;color:#ffdbad;border-color:#735326}
+html[data-theme=dark] .measure-quality-ok{background:#1a3b2c;color:#c8f4d8;border-color:#356d4d}</style>
+<style id="tech-reopen-v37">
+.role-technician .tech-reopen{background:#fff3e5;border:1px solid #e6c9a1;color:#835017}
+html[data-theme=dark] .role-technician .tech-reopen{background:#49331d;border-color:#927047;color:#ffe2ba}
+</style>
+<style id="tech-overdue-v37">
+.role-technician .tech-overdue{border-color:#e8c493;background:#fffaf1}
+.role-technician .tech-overdue>summary{color:#825014}
+.role-technician .tech-overdue-explain{font-size:12px;line-height:1.45;color:#805a2a}
+html[data-theme=dark] .role-technician .tech-overdue{background:#3c2d1c;border-color:#8f6337}
+html[data-theme=dark] .role-technician .tech-overdue>summary{color:#ffdc9a}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -1278,7 +1317,7 @@ function shell(body){
       <div class="brand">
         <div class="brand-mark">E</div>
         <div class="brand-copy">
-          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v36</span>':""}</h1>
+          <h1>Edoglò CRM${profile.role==="admin"?'<span class="crm-build-indicator">v37</span>':""}</h1>
           <div class="sub">${profile.role==="admin"?"Gestione commerciale e sopralluoghi":"Agenda e rilievi tecnici"}</div>
           <div class="role-chip">${profile.role==="admin"?"ADMIN":"TECNICO"}${displayName?" · "+esc(displayName):""}</div>
         </div>
@@ -1330,6 +1369,102 @@ function bindQuoteActions(){
   document.querySelectorAll("[data-quote-accepted]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteAccepted,"accepted"));
   document.querySelectorAll("[data-quote-declined]").forEach(b=>b.onclick=()=>setQuoteStatus(b.dataset.quoteDeclined,"declined"));
 }
+function measurementIssues(r){
+ const type=String(r.product_type||"").trim();
+ const missing=[];
+ const blank=x=>x===null||x===undefined||String(x).trim()==="";
+ const dimensional=!["Condizionatore","Altro"].includes(type);
+ if(dimensional&&!(Number(r.width_mm)>0))missing.push("larghezza");
+ if(dimensional&&!(Number(r.height_mm)>0))missing.push("altezza");
+ if(!(Number(r.quantity)>0))missing.push("quantità");
+ if(type==="Serramento"){
+  if(blank(r.room))missing.push("ambiente");
+  if(blank(r.opening_type))missing.push("tipologia apertura");
+  if(blank(r.profile))missing.push("profilo / serie");
+ }
+ if(!["Condizionatore","Altro"].includes(type)&&blank(r.product_color||r.frame_color))missing.push("colore / finitura");
+ if(["Condizionatore","Altro"].includes(type)&&blank(r.product_detail))missing.push("modello / dettaglio");
+ return missing;
+}
+function measurementQualityHtml(rows){
+ if(!rows?.length)return '<div class="measure-quality-alert" role="status"><strong>Rilievo ancora da compilare</strong><p>Nessuna posizione salvata. Inserisci almeno una posizione.</p></div>';
+ const gaps=rows.map((r,i)=>({name:r.position_name||("Pos. "+(i+1)),issues:measurementIssues(r)})).filter(x=>x.issues.length);
+ if(!gaps.length)return '<div class="measure-quality-ok" role="status">✓ Dati essenziali presenti. Ricontrolla comunque i dettagli tecnici prima di inviare l’ordine.</div>';
+ return '<div class="measure-quality-alert" role="status"><strong>⚠ Dati da completare in '+gaps.length+' posizioni</strong><p>Per un preventivo preciso completa:</p><ul>'+
+   gaps.map(g=>'<li><b>'+esc(g.name)+':</b> '+esc(g.issues.join(", "))+'</li>').join("")+'</ul></div>';
+}
+function photoPanelMarkup(readOnly=false){
+ return `<section class="crm-photo-panel" id="appointmentPhotoPanel" aria-label="Fotografie del sopralluogo">
+ <div class="crm-photo-header"><h3>📷 Foto del sopralluogo</h3><p>Fotografie collegate al cliente e al rilievo, accessibili al personale autorizzato.</p></div>
+ ${readOnly?"":`<div class="crm-photo-upload">
+  <div class="crm-photo-inputs">
+   <label class="crm-photo-pick">📷 Scatta foto<input id="crmPhotoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label>
+   <label class="crm-photo-pick">▧ Galleria<input id="crmPhotoGalleryInput" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+  </div>
+  <span id="crmPhotoChosen">Nessuna foto selezionata</span>
+  <div class="crm-photo-fields"><label>Posizione<select id="crmPhotoPosition"><option value="">Foto generale dell'intervento</option></select></label>
+   <label>Descrizione<input id="crmPhotoDescription" maxlength="160" placeholder="Es. Finestra cucina, cassonetto, difetto..."></label></div>
+  <button type="button" class="btn primary" id="crmPhotoUploadBtn" disabled>Carica foto</button>
+  <small>JPG, PNG o WebP, massimo 8 MB per foto. Archivio privato.</small>
+ </div>`}
+ <div id="crmPhotoFeedback" role="status" aria-live="polite"></div>
+ <div id="crmPhotoList" class="crm-photo-list"><p class="meta">Caricamento fotografie...</p></div>
+ </section>`;
+}
+async function initAppointmentPhotos(appointmentId,sessionId=null,positions=[]){
+ const panel=document.querySelector("#appointmentPhotoPanel");
+ if(!panel)return;
+ const gallery=panel.querySelector("#crmPhotoList"),msg=panel.querySelector("#crmPhotoFeedback");
+ const feedback=(value,isError=false)=>{if(msg){msg.textContent=value;msg.className=isError?"crm-photo-error":"crm-photo-success";}};
+ const refresh=async()=>{
+   const {data,error}=await sb.from("appointment_photos").select("id,appointment_id,session_id,position_id,storage_path,description,created_at")
+    .eq("appointment_id",appointmentId).order("created_at",{ascending:false});
+   if(error){gallery.innerHTML='<div class="crm-photo-error">Impossibile caricare le foto: '+esc(error.message)+'</div>';return;}
+   if(!data?.length){gallery.innerHTML='<p class="meta">Nessuna foto caricata per questo intervento.</p>';return;}
+   const cards=await Promise.all(data.map(async p=>{
+     const signed=await sb.storage.from("edoglo-rilievi-foto").createSignedUrl(p.storage_path,600);
+     const label=positions.find(r=>r.id===p.position_id)?.position_name||"Foto dell'intervento";
+     if(signed.error||!signed.data?.signedUrl)return '<div class="crm-photo-item"><p class="crm-photo-error">Foto non disponibile</p></div>';
+     const href=esc(signed.data.signedUrl);
+     return '<div class="crm-photo-item"><a href="'+href+'" target="_blank" rel="noopener noreferrer">'+
+       '<img src="'+href+'" alt="'+esc(p.description||label)+'" loading="lazy"></a><strong>'+esc(label)+'</strong>'+
+       (p.description?'<small>'+esc(p.description)+'</small>':"")+'</div>';
+   }));
+   if(panel.isConnected)gallery.innerHTML=cards.join("");
+ };
+ if(profile.role!=="technician"){await refresh();return;}
+ const select=panel.querySelector("#crmPhotoPosition");
+ positions.forEach(p=>{const option=document.createElement("option");option.value=p.id;option.textContent=(p.position_name||"Posizione")+" · "+(p.room||p.product_type||"Rilievo");select.appendChild(option);});
+ const upload=panel.querySelector("#crmPhotoUploadBtn"),camera=panel.querySelector("#crmPhotoCamera"),files=panel.querySelector("#crmPhotoGalleryInput");
+ const selection=panel.querySelector("#crmPhotoChosen");
+ let chosen=[];
+ const picked=input=>{chosen=Array.from(input.files||[]);selection.textContent=chosen.length===1?chosen[0].name:chosen.length+" foto selezionate";upload.disabled=!chosen.length;feedback("");};
+ camera.onchange=()=>picked(camera);files.onchange=()=>picked(files);
+ upload.onclick=async()=>{
+   if(!chosen.length)return;
+   if(chosen.length>8)return feedback("Carica al massimo 8 foto per volta.",true);
+   const mime={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"};
+   if(chosen.some(f=>!mime[f.type]||!f.size||f.size>8388608))return feedback("Sono consentiti JPG, PNG e WebP fino a 8 MB.",true);
+   upload.disabled=true;
+   let count=0;
+   for(const [i,file] of chosen.entries()){
+     feedback("Caricamento "+(i+1)+"/"+chosen.length+"...");
+     const path=appointmentId+"/"+crypto.randomUUID()+"."+mime[file.type];
+     const stored=await sb.storage.from("edoglo-rilievi-foto").upload(path,file,{contentType:file.type,upsert:false});
+     if(stored.error){feedback("Errore caricamento: "+stored.error.message,true);break;}
+     const linked=await sb.from("appointment_photos").insert({
+       appointment_id:appointmentId,session_id:sessionId||null,position_id:select.value||null,
+       storage_path:path,description:panel.querySelector("#crmPhotoDescription").value.trim(),created_by:user.id
+     }).select("id").single();
+     if(linked.error){feedback("Foto trasferita ma collegamento non riuscito. Avvisa l'ufficio: "+linked.error.message,true);break;}
+     count++;
+   }
+   if(count===chosen.length){feedback(count+" foto salvate.");chosen=[];camera.value="";files.value="";selection.textContent="Nessuna foto selezionata";panel.querySelector("#crmPhotoDescription").value="";}
+   upload.disabled=!chosen.length;
+   await refresh();
+ };
+ await refresh();
+}
 function measurementSummaryCard(r,i){
   const lines=[];
   if(r.opening_type) lines.push("<b>Tipologia:</b> "+esc(r.opening_type));
@@ -1365,8 +1500,10 @@ async function quoteDetail(leadId){
   shell("<div class=\"section\">Scheda rilievo / preventivo</div>"+
     "<div class=\"card\"><div class=\"name\">"+esc(l.full_name)+"</div><div class=\"meta\">"+esc([l.address,l.city,l.province].filter(Boolean).join(", "))+"</div><div class=\"meta\">"+esc(l.phone||"")+(l.email?" · "+esc(l.email):"")+"</div>"+(l.request?"<div class=\"outcome-box\"><b>Richiesta cliente</b>"+esc(l.request)+"</div>":"")+"</div>"+
     "<div class=\"card\"><div class=\"name\">Rilievo tecnico</div><div class=\"meta\">Tecnico: "+esc(a.technician_name||"Antonio")+" · "+(a.starts_at?fmt(a.starts_at):"")+"</div>"+(a.outcome_notes?"<div class=\"outcome-box\"><b>Esito / note tecnico</b>"+esc(a.outcome_notes)+"</div>":"")+"</div>"+
+    measurementQualityHtml(rows)+photoPanelMarkup(true)+
     "<div class=\"section\">Posizioni rilevate</div>"+(rows&&rows.length?rows.map(measurementSummaryCard).join(""):"<div class=\"card\">Nessuna posizione salvata.</div>")+
     "<div class=\"row\" style=\"margin-top:14px\"><button class=\"btn ghost\" id=\"backQuotes\">← Preventivi</button><button class=\"btn primary\" id=\"editMeasures\">Modifica / aggiungi al rilievo</button>"+(l.quote_status==="to_prepare"?"<button class=\"btn ok\" id=\"markSent\">Segna preventivo inviato</button>":"")+"</div>");
+  initAppointmentPhotos(a.id,ref.id,rows);
   document.querySelector("#backQuotes").onclick=()=>{view="quotes";render();};
   document.querySelector("#editMeasures").onclick=()=>measurementsView(a.id,ref.id);
   const sent=document.querySelector("#markSent");
@@ -1690,6 +1827,18 @@ function apptCards(xs){
  }).join("")||'<div class="card">Nessun appuntamento programmato.</div>';
 }
 
+async function restoreCompletedVisit(id){
+ if(profile.role!=="technician")return;
+ const appt=appts.find(a=>a.id===id&&a.technician_id===user.id&&a.status==="completed");
+ if(!appt)return alert("Intervento non trovato oppure già ripristinato.");
+ const isPast=day(appt.starts_at)<day(now());
+ const message="Riportare "+(appt.client_name||"questo cliente")+" tra gli interventi da fare?"+
+   (isPast?"\nAttenzione: la data dell'appuntamento è passata. Per inserirlo in un giorno futuro l'ufficio deve riprogrammarlo.":"");
+ if(!confirm(message))return;
+ const {data,error}=await sb.from("appointments").update({status:"confirmed"}).eq("id",id).eq("technician_id",user.id).eq("status","completed").select("id,status").maybeSingle();
+ if(error||!data)return alert("Ripristino non riuscito: "+(error?.message||"stato modificato nel frattempo"));
+ await load();view="agenda";render();
+}
 function completedVisits(){
  if(profile.role!=="technician"){view="agenda";return agenda();}
  const completed=appts.filter(a=>a.technician_id===user.id&&a.status==="completed").sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
@@ -1724,11 +1873,13 @@ function completedVisits(){
        ${a.outcome_notes?`<div class="tech-completed-note"><strong>Esito:</strong> ${esc(a.outcome_notes)}</div>`:""}
        <div class="tech-completed-actions">
          <button class="btn ghost" data-measures="${esc(a.id)}">▤ Apri rilievo</button>
+         <button class="btn tech-reopen" data-reopen="${esc(a.id)}">↶ Riporta da fare</button>
          ${phone?`<a class="btn ghost" href="tel:${esc(phone)}">☎ Chiama</a>`:""}
        </div>
      </article>`;
    }).join(""):'<div class="tech-empty">Nessun intervento eseguito trovato.</div>';
    bindAgendaActions();
+   document.querySelectorAll("[data-reopen]").forEach(b=>b.onclick=()=>restoreCompletedVisit(b.dataset.reopen));
  };
  document.querySelector("#techCompletedQuery").oninput=e=>{window.edogloCompletedSearch=e.target.value;renderList();};
  renderList();
@@ -1740,6 +1891,7 @@ function agenda(){
   const own=appts.filter(a=>a.technician_id===user.id&&a.status!=="cancelled"&&a.status!=="completed");
   const today=own.filter(a=>day(a.starts_at)===todayKey).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
   const todo=today;
+  const overdue=own.filter(a=>day(a.starts_at)<todayKey).sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at));
   const upcoming=own.filter(a=>day(a.starts_at)>todayKey&&new Date(a.ends_at)>=new Date()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,3);
   const labelDay=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Rome"}).format(new Date());
   shell(`
@@ -1753,6 +1905,7 @@ function agenda(){
    </div>
    <div class="tech-section-heading"><h3>Da fare oggi</h3><span>${todo.length}</span></div>
    ${todo.length?apptCards(todo):'<div class="tech-empty">Nessun intervento da eseguire oggi.</div>'}
+   ${overdue.length?`<details class="tech-history tech-overdue" open><summary>⚠ Interventi arretrati · da riprogrammare <span>${overdue.length}</span></summary><p class="tech-overdue-explain">La data è trascorsa: contatta l’ufficio per fissare una nuova data. Le schede restano accessibili.</p>${apptCards(overdue)}</details>`:""}
    ${upcoming.length?`<div class="tech-section-heading"><h3>Prossimi appuntamenti</h3><span>${upcoming.length}</span></div>${apptCards(upcoming)}`:""}
   `);
   document.querySelector("#techNewClient").onclick=()=>technicianNewClient();
@@ -1959,9 +2112,13 @@ async function measurementsView(appointmentId,sessionId=null){
         </div>
         <button class="btn primary" id="confirmProduct" style="width:100%" disabled>OK · Inizia rilievo</button>
       </div>
+      <div class="section">Controllo qualità rilievo</div>
+      ${measurementQualityHtml(rows)}
+      ${photoPanelMarkup(profile.role!=="technician")}
       <div class="section">Posizioni già salvate</div>
       ${rows.length?rows.map((r,i)=>`<div class="measure-card"><div class="name">Pos. ${i+1} · ${esc(r.product_type||"Rilievo")}</div><div class="meta">${esc(r.room||"")} · ${esc(r.product_color||"")}</div><div class="measure-value">${r.width_mm||"—"} × ${r.height_mm||"—"} mm</div></div>`).join(""):'<div class="card">Nessuna posizione salvata.</div>'}
     `);
+    initAppointmentPhotos(appointmentId,current.id,rows);
     let chosen="";
     document.querySelectorAll("[data-product]").forEach(b=>b.onclick=()=>{
       document.querySelectorAll("[data-product]").forEach(x=>x.classList.remove("active"));
@@ -2090,6 +2247,9 @@ async function measurementsView(appointmentId,sessionId=null){
       <button class="btn primary">+ Salva posizione</button>
     </form>
 
+    <div class="section">Controllo qualità rilievo</div>
+    ${measurementQualityHtml(rows)}
+    ${photoPanelMarkup(profile.role!=="technician")}
     <div class="section">Posizioni rilevate</div>
     ${rows?.length?rows.map((r,i)=>`
       <div class="measure-card">
@@ -2114,6 +2274,7 @@ async function measurementsView(appointmentId,sessionId=null){
     <div class="notice">Il rilievo salvato resta sempre modificabile. Le misure definitive, quando presenti, diventano il riferimento corretto.</div>
   `);
 
+  initAppointmentPhotos(appointmentId,current.id,rows);
   document.querySelectorAll("[data-open-session]").forEach(b=>b.onclick=()=>measurementsView(appointmentId,b.dataset.openSession));
 
   document.querySelector("#newDefinitive").onclick=async()=>{
@@ -2217,7 +2378,15 @@ async function measurementsView(appointmentId,sessionId=null){
   });
 
   document.querySelector("#saveSurvey").onclick=async()=>{
-    const btn=document.querySelector("#saveSurvey");
+    const checkRows=rows.map((r,i)=>({name:r.position_name||"Pos. "+(i+1),issues:measurementIssues(r)}));
+    const blockers=checkRows.filter(r=>r.issues.some(issue=>["larghezza","altezza","quantità"].includes(issue)));
+    if(blockers.length)return alert("Misure essenziali mancanti. Usa Modifica per completare:\n\n"+
+      blockers.map(r=>r.name+": "+r.issues.filter(x=>["larghezza","altezza","quantità"].includes(x)).join(", ")).join("\n"));
+    const advisory=checkRows.filter(r=>r.issues.length);
+    if(advisory.length&&!confirm("Alcuni dettagli tecnici non sono completi:\n\n"+
+       advisory.map(r=>r.name+": "+r.issues.join(", ")).join("\n")+
+       "\n\nVuoi salvare il rilievo comunque? L'ufficio vedrà gli avvisi prima del preventivo."))return;
+        const btn=document.querySelector("#saveSurvey");
     btn.disabled=true;btn.textContent="Verifica salvataggio…";
     const {error}=await sb.rpc("save_measurement_session",{p_session_id:current.id});
     if(error){btn.disabled=false;btn.textContent="✓ Salva rilievo";return alert(error.message.includes("NESSUNA_MISURA")?"Inserisci almeno una posizione prima di salvare.":"Rilievo NON confermato: "+error.message);}
