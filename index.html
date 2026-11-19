@@ -1963,7 +1963,7 @@ function techBusyIntervals(techId,ignoreId=null){
  return [...appointments,...absences].filter(a=>!Number.isNaN(a.start.getTime())&&!Number.isNaN(a.end.getTime()));
 }
 function dayOccupancy(date,techId,minutes=60,ignoreId=null){
- const dayStart=startOfDay(date),dayEnd=new Date(dayStart.getTime()+86400000);
+ const dayStart=startOfDay(date),dayEnd=new Date(date.getFullYear(),date.getMonth(),date.getDate()+1);
  const intervals=techBusyIntervals(techId,ignoreId).filter(a=>a.start<dayEnd&&a.end>dayStart);
  const slots=[];
  for(let hour=9;hour<18;hour++)for(const minute of [0,30]){
@@ -1976,7 +1976,7 @@ function dayOccupancy(date,techId,minutes=60,ignoreId=null){
  }
  const absence=intervals.some(a=>a.kind==="absence");
  const events=intervals.filter(a=>a.kind==="appointment").length;
- const state=slots.length===0?"full":absence?"blocked":events?"busy":"free";
+ const state=absence?"blocked":slots.length===0?"full":events?"busy":"free";
  return {slots,state,events,absence};
 }
 function crmCalendarMonthGrid(month,techId,minutes=60,ignoreId=null,onDate="calendar-pick",selected=""){
@@ -2003,7 +2003,8 @@ function crmAgendaView(){
  const end=active?new Date(start.getFullYear(),start.getMonth(),start.getDate()+7,12):new Date(start.getFullYear(),start.getMonth()+1,1,12);
  const rangeTitle=active?new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short"}).format(start)+" – "+new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short",year:"numeric"}).format(new Date(end.getTime()-86400000)):
     new Intl.DateTimeFormat("it-IT",{month:"long",year:"numeric"}).format(start);
- const days=Array.from({length:Math.round((end-start)/86400000)},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d;});
+ const dayCount=active?7:new Date(start.getFullYear(),start.getMonth()+1,0).getDate();
+ const days=Array.from({length:dayCount},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d;});
  const selectKey=agendaSelected&&days.some(d=>calendarKey(d)===agendaSelected)?agendaSelected:calendarKey(days[0]);
  agendaSelected=selectKey;
  const dayDate=dateFromKey(selectKey);
@@ -2036,50 +2037,53 @@ function bindCrmAgenda(){
  if(select)select.onchange=e=>{agendaTechId=e.target.value;document.querySelector("#agendaCalendar").innerHTML=crmAgendaView();bindCrmAgenda();};
  const elem=document.querySelector("#agendaCalendar");if(!elem)return;
  elem.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{agendaMode=b.dataset.mode;elem.innerHTML=crmAgendaView();bindCrmAgenda()});
- elem.querySelector("#agendaPrev").onclick=()=>{agendaFocus=new Date(agendaFocus.getFullYear(),agendaFocus.getMonth()+(agendaMode==="month"?-1:0),agendaFocus.getDate()+(agendaMode==="week"?-7:0),12);agendaSelected=calendarKey(agendaMode==="month"?new Date(agendaFocus.getFullYear(),agendaFocus.getMonth(),1,12):calendarStart(agendaFocus));elem.innerHTML=crmAgendaView();bindCrmAgenda()};
- elem.querySelector("#agendaNext").onclick=()=>{agendaFocus=new Date(agendaFocus.getFullYear(),agendaFocus.getMonth()+(agendaMode==="month"?1:0),agendaFocus.getDate()+(agendaMode==="week"?7:0),12);agendaSelected=calendarKey(agendaMode==="month"?new Date(agendaFocus.getFullYear(),agendaFocus.getMonth(),1,12):calendarStart(agendaFocus));elem.innerHTML=crmAgendaView();bindCrmAgenda()};
+ elem.querySelector("#agendaPrev").onclick=()=>{agendaFocus=agendaMode==="month"?new Date(agendaFocus.getFullYear(),agendaFocus.getMonth()-1,1,12):new Date(agendaFocus.getFullYear(),agendaFocus.getMonth(),agendaFocus.getDate()-7,12);agendaSelected=calendarKey(agendaMode==="month"?new Date(agendaFocus.getFullYear(),agendaFocus.getMonth(),1,12):calendarStart(agendaFocus));elem.innerHTML=crmAgendaView();bindCrmAgenda()};
+ elem.querySelector("#agendaNext").onclick=()=>{agendaFocus=agendaMode==="month"?new Date(agendaFocus.getFullYear(),agendaFocus.getMonth()+1,1,12):new Date(agendaFocus.getFullYear(),agendaFocus.getMonth(),agendaFocus.getDate()+7,12);agendaSelected=calendarKey(agendaMode==="month"?new Date(agendaFocus.getFullYear(),agendaFocus.getMonth(),1,12):calendarStart(agendaFocus));elem.innerHTML=crmAgendaView();bindCrmAgenda()};
  elem.querySelector("#agendaToday").onclick=()=>{agendaFocus=new Date();agendaSelected=calendarKey(new Date());elem.innerHTML=crmAgendaView();bindCrmAgenda()};
  elem.querySelectorAll("[data-agenda-pick]").forEach(b=>b.onclick=()=>{agendaSelected=b.dataset.agendaPick;const chosen=dateFromKey(agendaSelected);agendaFocus=new Date(chosen.getFullYear(),chosen.getMonth(),agendaMode==="month"?1:chosen.getDate(),12);elem.innerHTML=crmAgendaView();bindCrmAgenda()});
  bindAgendaActions();
 }
-function crmBookingPlanner(form,ignoreId=null){
+function crmBookingPlanner(form,ignoreId=null,oldVisit=null){
  const holder=form.querySelector("#crmBookingCalendar");if(!holder)return;
  const input=form.querySelector('input[name="starts_at"]');
  const type=form.querySelector('[name="activity_type"]');
  const tech=form.querySelector('[name="technician_id"]');
  if(!input||!tech||!type)return;
  let month=input.value?dateFromKey(input.value.slice(0,10)):new Date();
+ let inspectedDay=input.value?.slice(0,10)||"";
  const render=()=>{
-   const techId=tech.value,minutes=visitDurationMinutes(type.value);
+   const techId=tech.value,minutes=oldVisit&&type.value===oldVisit.activity_type?oldVisit.minutes:visitDurationMinutes(type.value);
    const chosenKey=input.value?.slice(0,10)||"";
-   const selectedDate=chosenKey?dateFromKey(chosenKey):new Date();
+   const visibleKey=inspectedDay||chosenKey;
+   const selectedDate=visibleKey?dateFromKey(visibleKey):new Date();
    const current=dayOccupancy(selectedDate,techId,minutes,ignoreId);
    const selectedSlot=input.value?new Date(input.value):null;
-   const possible=selectedSlot&&!Number.isNaN(selectedSlot.getTime())&&current.slots.some(d=>d.getTime()===selectedSlot.getTime());
-   const otherTimeValid=selectedSlot&&!Number.isNaN(selectedSlot.getTime())&&selectedSlot.getMinutes()%30!==0&&!techBusyIntervals(techId,ignoreId).some(a=>selectedSlot<a.end&&new Date(selectedSlot.getTime()+minutes*60000)>a.start)&&selectedSlot.getHours()>=9&&new Date(selectedSlot.getTime()+minutes*60000).getHours()<=18;
+   const possible=selectedSlot&&!Number.isNaN(selectedSlot.getTime())&&input.value?.slice(0,10)===visibleKey&&current.slots.some(d=>d.getTime()===selectedSlot.getTime());
+   const otherTimeValid=selectedSlot&&input.value?.slice(0,10)===visibleKey&&!validateVisitSlot(techId,selectedSlot,type.value,ignoreId,minutes);
    const availability=current.slots.map(d=>'<button type="button" class="crm-booking-slot '+(input.value===local(d)?"picked":"")+'" data-book-time="'+local(d)+'">'+fmtTime(d)+'</button>').join("");
    holder.innerHTML='<div class="crm-planner-heading"><strong>Disponibilità di '+esc(techs.find(t=>t.id===techId)?.full_name||"tecnico")+'</strong><small>Le giornate occupate e le assenze vengono escluse automaticamente.</small></div>'+
    '<div class="crm-planner-header"><button type="button" id="bookingPrev" aria-label="Mese precedente">‹</button><strong>'+esc(new Intl.DateTimeFormat("it-IT",{month:"long",year:"numeric"}).format(month))+'</strong><button type="button" id="bookingNext" aria-label="Mese successivo">›</button></div>'+
    '<div class="crm-agenda-legend"><span class="legend-free">Libero</span><span class="legend-busy">Appuntamenti</span><span class="legend-blocked">Indisponibile</span><span class="legend-full">Pieno</span></div>'+
-   crmCalendarMonthGrid(month,techId,minutes,ignoreId,"booking-day",chosenKey)+
+   crmCalendarMonthGrid(month,techId,minutes,ignoreId,"booking-day",visibleKey)+
    '<div class="crm-booking-day-info"><strong>'+esc(new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long"}).format(selectedDate))+'</strong><span>'+ (possible||otherTimeValid?"Orario selezionato disponibile":input.value?"Controlla l’orario: potrebbe essere occupato":"Seleziona un giorno")+'</span></div>'+
    '<div class="crm-booking-times">'+(availability||'<p>Nessun orario disponibile in questa data.</p>')+'</div>';
    holder.querySelector("#bookingPrev").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1,12);render()};
    holder.querySelector("#bookingNext").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1,12);render()};
    holder.querySelectorAll("[data-booking-day]").forEach(btn=>btn.onclick=()=>{
      const key=btn.dataset.bookingDay,slots=dayOccupancy(dateFromKey(key),techId,minutes,ignoreId).slots;
-     if(!slots.length){input.value=key+"T09:00";render();return;}
+     inspectedDay=key;
+     if(!slots.length){render();return;}
      input.value=local(slots[0]);render();
    });
-   holder.querySelectorAll("[data-book-time]").forEach(btn=>btn.onclick=()=>{input.value=btn.dataset.bookTime;render()});
+   holder.querySelectorAll("[data-book-time]").forEach(btn=>btn.onclick=()=>{input.value=btn.dataset.bookTime;inspectedDay=btn.dataset.bookTime.slice(0,10);render()});
  };
  tech.addEventListener("change",render);
  type.addEventListener("change",render);
- input.addEventListener("change",()=>{if(input.value)month=dateFromKey(input.value.slice(0,10));render()});
+ input.addEventListener("change",()=>{if(input.value){month=dateFromKey(input.value.slice(0,10));inspectedDay=input.value.slice(0,10);}render()});
  render();
 }
-function validateVisitSlot(techId,start,type,ignoreId=null){
- const end=new Date(start.getTime()+visitDurationMinutes(type)*60000);
+function validateVisitSlot(techId,start,type,ignoreId=null,minutesOverride=null){
+ const end=new Date(start.getTime()+(minutesOverride||visitDurationMinutes(type))*60000);
  if(!techId||Number.isNaN(start.getTime()))return "Tecnico e data sono obbligatori.";
  const dayEnd=new Date(start.getFullYear(),start.getMonth(),start.getDate(),18,0);
  const dayStart=new Date(start.getFullYear(),start.getMonth(),start.getDate(),9,0);
@@ -2147,11 +2151,11 @@ function editAppt(id){
    <button class="btn primary" type="submit">Salva modifiche</button>
  </form></div>`);
  document.querySelector("#editVisitBack").onclick=()=>{view="agenda";render()};
- crmBookingPlanner(document.querySelector("#ef"),id);
+ crmBookingPlanner(document.querySelector("#ef"),id,{activity_type:a.activity_type,minutes:oldMinutes});
  document.querySelector("#ef").onsubmit=async e=>{e.preventDefault();const x=Object.fromEntries(new FormData(e.currentTarget).entries());
  const start=new Date(x.starts_at),notes=String(x.notes_for_technician||"").trim();if(Number.isNaN(start.getTime()))return alert("Inserisci una data e un'ora valide.");
  if(!notes)return alert("Scrivi le istruzioni per il tecnico.");
- if(["confirmed","scheduled"].includes(x.status)){const conflict=validateVisitSlot(x.technician_id,start,x.activity_type,id);if(conflict)return alert(conflict);}
+ if(["confirmed","scheduled"].includes(x.status)){const length=x.activity_type===a.activity_type?oldMinutes:visitDurationMinutes(x.activity_type);const conflict=validateVisitSlot(x.technician_id,start,x.activity_type,id,length);if(conflict)return alert(conflict);}
  const minutes=x.activity_type===a.activity_type?oldMinutes:visitDurationMinutes(x.activity_type);
  x.starts_at=start.toISOString();x.ends_at=new Date(start.getTime()+minutes*60000).toISOString();x.notes_for_technician=notes;x.notes=notes;
  x.technician_name=techs.find(t=>t.id===x.technician_id)?.full_name||a.technician_name||"Tecnico";
