@@ -276,6 +276,7 @@
         field.dispatchEvent(new Event("input", { bubbles:true }));
         field.dispatchEvent(new Event("change", { bubbles:true }));
       });
+      if (parsed.fields.position_color) form.dataset.voiceColor = parsed.fields.position_color;
       const noteField = form.querySelector('[name="notes"]');
       if (noteField) {
         const additions = parsed.notes.concat(extra.map(t => "Da verificare - " + t));
