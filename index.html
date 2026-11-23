@@ -2336,9 +2336,9 @@ async function measurementsView(appointmentId,sessionId=null){
     x.session_id=current.id;
     x.created_by=user.id;
     x.product_type=selectedProduct;
-    x.product_color=selectedColor;
+    x.product_color=e.currentTarget.dataset.voiceColor||selectedColor;
     x.position_name="Pos. "+nextPos;
-    if(selectedProduct==="Serramento") x.frame_color=selectedColor;
+    if(selectedProduct==="Serramento") x.frame_color=x.frame_color||x.product_color;
     if(selectedProduct==="Tapparella") x.roller_shutter_color=selectedColor;
     x.quantity=Number(x.quantity||1);
     x.width_mm=x.width_mm?Number(x.width_mm):null;
