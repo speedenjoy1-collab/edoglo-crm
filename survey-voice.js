@@ -26,7 +26,7 @@
     const isTwo = /\b(?:due|2)\s+ante\b/.test(s);
     const isOne = /\b(?:una|un|1)\s+(?:sola?\s+)?anta\b/.test(s) || /\bmono\s*anta\b/.test(s);
     if (/\bporta\s?finestra\b/.test(s)) {
-      if (isTwo || isOne) fields.opening_type = "Portafinestra " + (isTwo ? "2" : "1") + " ante".replace("1 ante", "1 anta");
+      if (isTwo || isOne) fields.opening_type = isTwo ? "Portafinestra 2 ante" : "Portafinestra 1 anta";
     } else if (/\bfinestra\b/.test(s)) {
       if (isTwo || isOne) fields.opening_type = "Finestra " + (isTwo ? "2 ante" : "1 anta");
     } else if (/\bportoncino\b/.test(s)) fields.opening_type = "Portoncino";
@@ -54,21 +54,33 @@
     const unit = "(mm|millimetri|millimetro|cm|centimetri|centimetro)?";
     const widthRe = new RegExp("\\b(?:larghezza|larga|largo)\\s*(?:di\\s*)?(\\d{2,4}(?:[,.]\\d+)?)\\s*" + unit, "g");
     const heightRe = new RegExp("\\b(?:altezza|alta|alto)\\s*(?:di\\s*)?(\\d{2,4}(?:[,.]\\d+)?)\\s*" + unit, "g");
-    const widths = [...s.matchAll(widthRe)];
-    const heights = [...s.matchAll(heightRe)].filter(m => !/\b(?:anta|ante|sopraluce)\s*$/.test(s.slice(Math.max(0, m.index - 24), m.index)));
-    const pair = s.match(/\b(\d{2,4}(?:[,.]\d+)?)\s*(?:x|per)\s*(\d{2,4}(?:[,.]\d+)?)\s*(mm|millimetri|cm|centimetri)?\b/);
-    if (pair) {
-      const w = millimetres(pair[1], pair[3], "Larghezza");
-      const h = millimetres(pair[2], pair[3], "Altezza");
+    const widthReverse = new RegExp("\\b(\\d{2,4}(?:[,.]\\d+)?)\\s*" + unit + "\\s*(?:di\\s*)?(?:larghezza|larga|largo)\\b", "g");
+    const heightReverse = new RegExp("\\b(\\d{2,4}(?:[,.]\\d+)?)\\s*" + unit + "\\s*(?:di\\s*)?(?:altezza|alta|alto)\\b", "g");
+    const firstSizeWord = s.search(/\b(?:larghezza|altezza|larga|largo|alta|alto)\b/);
+    const firstSizeNum = s.search(/\b\d{3,4}\b/);
+    const reverseSizes = firstSizeWord >= 0 && firstSizeNum >= 0 && firstSizeNum < firstSizeWord;
+    const widths = [...s.matchAll(reverseSizes ? widthReverse : widthRe)];
+    const heights = [...s.matchAll(reverseSizes ? heightReverse : heightRe)].filter(m =>
+      !/\b(?:anta|ante|sopraluce)\s*$/.test(s.slice(Math.max(0, m.index - 24), m.index)));
+    const correctionAt = Math.max(s.lastIndexOf("correggi"), s.lastIndexOf("correzione"), s.lastIndexOf("rettifica"), s.lastIndexOf("anzi"));
+    const pick = matches => correctionAt < 0 ? matches[0] : (matches.filter(m => m.index >= correctionAt).pop() || matches[0]);
+    const pairMatches = [...s.matchAll(/\b(\d{2,4}(?:[,.]\d+)?)\s*(?:x|per)\s*(\d{2,4}(?:[,.]\d+)?)\s*(mm|millimetri|cm|centimetri)?\b/g)];
+    const pair = pick(pairMatches);
+    const adjacent = !pair && s.match(/\b(\d{3,4})\s+(\d{3,4})\s*(mm|millimetri|cm|centimetri)?\b/);
+    if (pair || adjacent) {
+      const m = pair || adjacent;
+      const w = millimetres(m[1], m[3], "Larghezza");
+      const h = millimetres(m[2], m[3], "Altezza");
       if (w) fields.width_mm = String(w);
       if (h) fields.height_mm = String(h);
+      if (adjacent) warnings.push("Due numeri consecutivi interpretati come larghezza × altezza: controlla.");
     }
     if (widths.length) {
-      const m = widths[0], w = millimetres(m[1], m[2], "Larghezza");
+      const m = pick(widths), w = millimetres(m[1], m[2], "Larghezza");
       if (w) fields.width_mm = String(w);
     }
     if (heights.length) {
-      const m = heights[0], h = millimetres(m[1], m[2], "Altezza");
+      const m = pick(heights), h = millimetres(m[1], m[2], "Altezza");
       if (h) fields.height_mm = String(h);
     }
 
@@ -79,9 +91,13 @@
     else if (/\bprofilo\s+in\s+legno\b/.test(s)) fields.profile = "Legno";
 
     const colors = "(?:ral\\s*\\d{4}|rovere miele|rovere|grigio antracite|grigio chiaro|bianco opaco|bianco|bianca|noce|nero|nera|antracite|avorio|grigio|marrone|verde muschio|verde)";
+    const firstSide = s.search(/\b(?:interno|interna|esterno|esterna)\b/);
+    const firstColor = s.search(new RegExp("\\b(" + colors + ")\\b"));
+    const reverseColors = firstColor >= 0 && firstSide >= 0 && firstColor < firstSide;
     function extractSide(side) {
-      const re = new RegExp("(?:colore\\s+)?(?:" + side + ")\\s*(?:colore\\s*)?(?:di\\s*)?(" + colors + ")\\b");
-      const m = s.match(re);
+      const forward = s.match(new RegExp("(?:colore\\s+)?(?:" + side + ")\\s*[:=,-]?\\s*(?:colore\\s*)?(?:di\\s*)?(" + colors + ")\\b"));
+      const backward = s.match(new RegExp("\\b(" + colors + ")\\s+(?:" + side + ")\\b"));
+      const m = reverseColors ? (backward || forward) : (forward || backward);
       return m ? m[1].replace(/\bral\s*(\d{4})/, "RAL $1") : "";
     }
     const inside = extractSide("interno|interna");
@@ -92,6 +108,10 @@
       const generic = s.match(new RegExp("\\b(?:colore|finitura)\\s*(?:di\\s*)?(" + colors + ")\\b"));
       if (generic) color = generic[1].replace(/\bral\s*(\d{4})/, "RAL $1");
       else if (/\b(?:tutto|tutta|tutti)\s+bianc[oaie]\b/.test(s)) color = "Bianco";
+      else {
+        const ral = s.match(/\bral\s*(\d{4})\b/);
+        if (ral) color = "RAL " + ral[1];
+      }
     }
     if (color) {
       fields.position_color = color;
@@ -280,6 +300,14 @@
       const noteField = form.querySelector('[name="notes"]');
       if (noteField) {
         const additions = parsed.notes.concat(extra.map(t => "Da verificare - " + t));
+        const original = textarea.value.trim();
+        if (original) {
+          if (original.length > 6000) {
+            status.textContent = "Testo troppo lungo: usa una descrizione per ogni posizione (massimo 6.000 caratteri).";
+            return;
+          }
+          additions.push("Trascrizione vocale da verificare: " + original);
+        }
         additions.forEach(t => {
           if (!noteField.value.includes(t)) noteField.value = [noteField.value.trim(),t].filter(Boolean).join("\n");
         });
