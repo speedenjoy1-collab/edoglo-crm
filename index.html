@@ -2336,7 +2336,9 @@ async function measurementsView(appointmentId,sessionId=null){
     x.session_id=current.id;
     x.created_by=user.id;
     x.product_type=selectedProduct;
-    x.product_color=e.currentTarget.dataset.voiceColor||selectedColor;
+    // Manual edits to the frame color take priority over voice suggestions.
+    x.product_color=(selectedProduct==="Serramento" && x.frame_color)
+      ? x.frame_color : (e.currentTarget.dataset.voiceColor||selectedColor);
     x.position_name="Pos. "+nextPos;
     if(selectedProduct==="Serramento") x.frame_color=x.frame_color||x.product_color;
     if(selectedProduct==="Tapparella") x.roller_shutter_color=selectedColor;
