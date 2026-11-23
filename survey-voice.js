@@ -16,7 +16,7 @@
     const warnings = [];
     const notes = [];
     const positionLabels = [...s.matchAll(/\bposizione\s+(\d+|uno|due|tre|quattro|cinque|sei|sette|otto|nove|dieci)\b/g)].map(m => m[1]);
-    const multiPosition = new Set(positionLabels).size > 1;
+    let multiPosition = new Set(positionLabels).size > 1;
     if (multiPosition) warnings.push("Hai dettato più posizioni: suddividile e compila una scheda alla volta.");
     if (!s) return { fields, warnings: ["Detta o inserisci una descrizione del serramento."], notes, multiPosition };
 
@@ -62,13 +62,26 @@
     const firstSizeWord = s.search(/\b(?:larghezza|altezza|larga|largo|alta|alto)\b/);
     const firstSizeNum = s.search(/\b\d{3,4}\b/);
     const reverseSizes = firstSizeWord >= 0 && firstSizeNum >= 0 && firstSizeNum < firstSizeWord;
-    const widths = [...s.matchAll(reverseSizes ? widthReverse : widthRe)];
-    const heights = [...s.matchAll(reverseSizes ? heightReverse : heightRe)].filter(m =>
-      !/\b(?:anta|ante|sopraluce)\s*$/.test(s.slice(Math.max(0, m.index - 24), m.index)));
+    const widthPreferred = [...s.matchAll(reverseSizes ? widthReverse : widthRe)];
+    const widthAlternate = [...s.matchAll(reverseSizes ? widthRe : widthReverse)];
+    const heightPreferred = [...s.matchAll(reverseSizes ? heightReverse : heightRe)];
+    const heightAlternate = [...s.matchAll(reverseSizes ? heightRe : heightReverse)];
+    const validHeight = m => !/\b(?:anta|ante|sopraluce)\s*$/.test(s.slice(Math.max(0, m.index - 24), m.index));
+    const widths = [widthPreferred, widthAlternate];
+    const heights = [heightPreferred.filter(validHeight), heightAlternate.filter(validHeight)];
     const correctionAt = Math.max(s.lastIndexOf("correggi"), s.lastIndexOf("correzione"), s.lastIndexOf("rettifica"), s.lastIndexOf("anzi"));
     const pick = matches => correctionAt < 0 ? matches[0] : (matches.filter(m => m.index >= correctionAt).pop() || matches[0]);
+    const chooseDimension = groups => {
+      const corrected = correctionAt < 0 ? [] : groups.flat().filter(m => m.index >= correctionAt).sort((a,b) => a.index - b.index);
+      return corrected.length ? corrected[corrected.length - 1] : (groups[0][0] || groups[1][0]);
+    };
     const pairMatches = [...s.matchAll(/\b(\d{2,4}(?:[,.]\d+)?)\s*(?:x|per)\s*(\d{2,4}(?:[,.]\d+)?)\s*(mm|millimetri|cm|centimetri)?\b/g)];
     const pair = pick(pairMatches);
+    const hasNewPositionWord = /\b(?:posizione\s+(?:nuova|successiva|seguente)|passiamo\s+alla\s+posizione)\b/.test(s);
+    if ((pairMatches.length > 1 && correctionAt < 0) || hasNewPositionWord) {
+      warnings.push("Sono presenti più misure o richieste di cambio posizione: verifica una scheda alla volta.");
+      multiPosition = true;
+    }
     const adjacent = !pair && s.match(/\b(\d{3,4})\s+(\d{3,4})\s*(mm|millimetri|cm|centimetri)?\b/);
     if (pair || adjacent) {
       const m = pair || adjacent;
@@ -78,12 +91,12 @@
       if (h) fields.height_mm = String(h);
       if (adjacent) warnings.push("Due numeri consecutivi interpretati come larghezza × altezza: controlla.");
     }
-    if (widths.length) {
-      const m = pick(widths), w = millimetres(m[1], m[2], "Larghezza");
+    if (widths.some(g => g.length)) {
+      const m = chooseDimension(widths), w = millimetres(m[1], m[2], "Larghezza");
       if (w) fields.width_mm = String(w);
     }
-    if (heights.length) {
-      const m = pick(heights), h = millimetres(m[1], m[2], "Altezza");
+    if (heights.some(g => g.length)) {
+      const m = chooseDimension(heights), h = millimetres(m[1], m[2], "Altezza");
       if (h) fields.height_mm = String(h);
     }
 
