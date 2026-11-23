@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-19-v37">
+  <meta name="edoglo-build" content="2026-11-23-voice-beta">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -1164,6 +1164,7 @@ html[data-theme=dark] .role-technician .tech-overdue>summary{color:#ffdc9a}
 </head>
 <body>
 <div id="app"></div>
+<script src="./survey-voice.js"></script>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
@@ -2325,6 +2326,9 @@ async function measurementsView(appointmentId,sessionId=null){
     }
   });
 
+  // Optional voice assistant. Manual inputs and the existing save routine remain unchanged.
+  window.EdogloVoice?.mount(document.querySelector("#mf"));
+
   document.querySelector("#mf").onsubmit=async e=>{
     e.preventDefault();
     const x=Object.fromEntries(new FormData(e.currentTarget).entries());
@@ -2332,9 +2336,11 @@ async function measurementsView(appointmentId,sessionId=null){
     x.session_id=current.id;
     x.created_by=user.id;
     x.product_type=selectedProduct;
-    x.product_color=selectedColor;
+    // Manual edits to the frame color take priority over voice suggestions.
+    x.product_color=(selectedProduct==="Serramento" && x.frame_color)
+      ? x.frame_color : (e.currentTarget.dataset.voiceColor||selectedColor);
     x.position_name="Pos. "+nextPos;
-    if(selectedProduct==="Serramento") x.frame_color=selectedColor;
+    if(selectedProduct==="Serramento") x.frame_color=x.frame_color||x.product_color;
     if(selectedProduct==="Tapparella") x.roller_shutter_color=selectedColor;
     x.quantity=Number(x.quantity||1);
     x.width_mm=x.width_mm?Number(x.width_mm):null;
