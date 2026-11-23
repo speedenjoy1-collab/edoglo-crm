@@ -15,7 +15,10 @@
     const fields = {};
     const warnings = [];
     const notes = [];
-    if (!s) return { fields, warnings: ["Detta o inserisci una descrizione del serramento."], notes };
+    const positionLabels = [...s.matchAll(/\bposizione\s+(\d+|uno|due|tre|quattro|cinque|sei|sette|otto|nove|dieci)\b/g)].map(m => m[1]);
+    const multiPosition = new Set(positionLabels).size > 1;
+    if (multiPosition) warnings.push("Hai dettato più posizioni: suddividile e compila una scheda alla volta.");
+    if (!s) return { fields, warnings: ["Detta o inserisci una descrizione del serramento."], notes, multiPosition };
 
     const rooms = ["camera matrimoniale", "camera da letto", "camera", "cameretta",
       "soggiorno", "salone", "sala", "cucina", "bagno", "mansarda", "cantina",
@@ -190,7 +193,7 @@
     if (!Object.keys(fields).length && !notes.length) {
       warnings.push("Nessun campo riconosciuto. Prova con: cucina, 1395 per 2700 millimetri, PVC 80, colore interno bianco, esterno noce.");
     }
-    return { fields, warnings: [...new Set(warnings)], notes: [...new Set(notes)] };
+    return { fields, warnings: [...new Set(warnings)], notes: [...new Set(notes)], multiPosition };
   }
 
   function stop() {
@@ -226,10 +229,11 @@
         '<button type="button" class="btn ghost" data-voice-check>Analizza testo</button>' +
       '</div>' +
       '<textarea data-voice-text aria-label="Testo dettato per il rilievo" placeholder="Es. Cucina, portafinestra due ante, 1395 per 2700 millimetri, PVC 80, interno bianco, esterno noce, anta alta 2100 e sopraluce."></textarea>' +
+      '<label class="edoglo-voice-help" style="display:flex;align-items:flex-start;gap:7px"><input type="checkbox" data-voice-keep> Salva anche la trascrizione completa nelle note tecniche (facoltativo)</label>' +
       '<div class="edoglo-voice-status" data-voice-status role="status">Il sistema propone i dati, non salva automaticamente.</div>' +
       '<div class="edoglo-voice-preview" data-voice-preview aria-live="polite"></div>' +
       '<div class="edoglo-voice-actions" style="margin-top:12px"><button type="button" class="btn primary" data-voice-apply disabled>Applica alla scheda (non salva)</button></div>' +
-      '<p class="edoglo-voice-help">Se il browser non supporta il microfono, usa quello della tastiera o prosegui manualmente. Non dettare nomi o informazioni personali: il browser può inviare l’audio al proprio servizio di riconoscimento. Nessun audio viene salvato dal CRM.</p>';
+      '<p class="edoglo-voice-help">Se il browser non supporta il microfono, usa quello della tastiera o prosegui manualmente. Non dettare nomi o informazioni personali: il browser può inviare l’audio al proprio servizio di riconoscimento. Il CRM non salva registrazioni audio; salva soltanto i campi confermati e le note scelte.</p>';
     const header = form.querySelector(".position-head");
     if (header) header.insertAdjacentElement("afterend", panel);
     else form.prepend(panel);
@@ -272,11 +276,19 @@
         line.textContent = "Attenzione: " + w;
         preview.appendChild(line);
       });
-      applyButton.disabled = !Object.keys(parsed.fields).length && !parsed.notes.length;
+      applyButton.disabled = parsed.multiPosition || (!Object.keys(parsed.fields).length && !parsed.notes.length);
     }
 
     function apply() {
       display();
+      if (parsed.multiPosition) {
+        status.textContent = "Sono presenti più posizioni: detta una posizione per scheda prima di applicare i dati.";
+        return;
+      }
+      if (textarea.value.length > 6000) {
+        status.textContent = "Dettatura troppo lunga. Separa le posizioni; massimo 6.000 caratteri per scheda.";
+        return;
+      }
       const updates = Object.entries(parsed.fields).map(([key, value]) => ({
         key, value, field: form.querySelector('[name="' + key + '"]')
       }));
@@ -285,7 +297,7 @@
       const extra = [];
       updates.forEach(({key,value,field}) => {
         if (!field) {
-          if (!["opening_type","profile","frame_color"].includes(key)) extra.push(key + ": " + value);
+          if (!["opening_type","profile","frame_color","position_color"].includes(key)) extra.push(key + ": " + value);
           return;
         }
         if (field.tagName === "SELECT" && !Array.from(field.options).some(o => o.value === value)) {
@@ -301,11 +313,7 @@
       if (noteField) {
         const additions = parsed.notes.concat(extra.map(t => "Da verificare - " + t));
         const original = textarea.value.trim();
-        if (original) {
-          if (original.length > 6000) {
-            status.textContent = "Testo troppo lungo: usa una descrizione per ogni posizione (massimo 6.000 caratteri).";
-            return;
-          }
+        if (original && panel.querySelector("[data-voice-keep]").checked) {
           additions.push("Trascrizione vocale da verificare: " + original);
         }
         additions.forEach(t => {
