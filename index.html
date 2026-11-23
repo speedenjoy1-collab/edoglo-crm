@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta name="edoglo-build" content="2026-11-19-v37">
+  <meta name="edoglo-build" content="2026-11-23-voice-beta">
   <title>Edoglò CRM</title>
   <style>
     :root{
@@ -1164,6 +1164,7 @@ html[data-theme=dark] .role-technician .tech-overdue>summary{color:#ffdc9a}
 </head>
 <body>
 <div id="app"></div>
+<script src="./survey-voice.js"></script>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
@@ -2324,6 +2325,9 @@ async function measurementsView(appointmentId,sessionId=null){
       s.remove();
     }
   });
+
+  // Optional voice assistant. Manual inputs and the existing save routine remain unchanged.
+  window.EdogloVoice?.mount(document.querySelector("#mf"));
 
   document.querySelector("#mf").onsubmit=async e=>{
     e.preventDefault();
